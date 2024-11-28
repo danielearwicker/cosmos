@@ -1,0 +1,470 @@
+@import "dist/encrypted-storage.css";
+
+html,
+body,
+#root,
+.app,
+.app-content,
+.fatboy-slim {
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background: black;
+    color: white;
+    display: flex;
+    flex-direction: column;
+}
+
+input,
+select {
+    -webkit-appearance: none;
+    background-color: #444;
+    color: #ddd;
+}
+
+.app {
+    font-family: sans-serif;
+    font-size: 1.5em;
+    display: flex;
+    flex-direction: column;
+}
+
+.fatboy-slim {
+    display: flex;
+    flex-direction: column;
+}
+
+.over-the-limit {
+    color: hotpink;
+}
+
+.tabs {
+    display: flex;
+    flex-direction: row;
+    padding: 0.5em 0.5em 0 0.5em;
+
+    .tab {
+        font-size: 0.8em;
+        margin: 0 0.5em 0.5em 0;
+        padding: 0 0 0.2em 0;
+        border-bottom: 3px solid transparent;
+        &.selected {
+            border-bottom: 3px solid teal;
+        }
+        position: relative;
+
+        .count {
+            position: absolute;
+            right: -8px;
+            top: -4px;
+            font-size: 0.6em;
+            background-color: red;
+            color: white;
+            padding: 2px;
+            border-radius: 4px;
+        }
+    }
+}
+
+.date-picker {
+    padding: 0 0.5em;
+    input,
+    button {
+        font-size: 0.8em;
+        margin-right: 0.5em;
+    }
+}
+
+.day,
+.stats,
+.config,
+.measurements {
+    padding: 0.5em;
+    flex: 1 1 auto;
+    overflow: auto;
+}
+
+.measurements .history {
+    margin-top: 0.5em;
+}
+
+.day {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.calorie-bar {
+    margin: 0.5em;
+    border-radius: 0.5em;
+    background: #555;
+    position: relative;
+
+    .progress {
+        height: 1.2em;
+        background: #b69;
+        border-radius: 0.5em;
+    }
+
+    .remaining,
+    .ate {
+        position: absolute;
+        top: 1px;
+    }
+
+    .ate {
+        left: 7px;
+    }
+
+    .remaining {
+        right: 7px;
+    }
+}
+
+.meal {
+    margin-bottom: 1em;
+    padding: 0.5em;
+    background: #357;
+    border-radius: 0.5em;
+
+    .meal-heading {
+        display: flex;
+        flex-direction: row;
+
+        .title {
+            flex: 1 1 auto;
+            font-weight: bold;
+        }
+        .calories {
+            font-style: italic;
+        }
+    }
+
+    .comestible {
+        margin: 0.5em;
+        background: cornflowerblue;
+        color: white;
+        padding: 0.3em;
+        border-radius: 0.5em;
+        display: inline-block;
+
+        > * {
+            vertical-align: middle;
+        }
+
+        &.sugar {
+            border: 2px dashed cyan;
+        }
+
+        .calories {
+            padding: 0 0.2em;
+            color: darkorange;
+        }
+
+        .weight {
+            padding-left: 0.3em;
+            font-size: 0.6em;
+            color: cyan;
+        }
+
+        .quantity {
+            margin-left: 0.2em;
+            padding: 0 0.2em;
+            border-radius: 4px;
+            color: black;
+            cursor: pointer;
+            background: gold;
+            font-size: 0.9em;
+            width: 2em;
+
+            &.too-much {
+                background-color: pink;
+            }
+        }
+
+        .delete {
+            font-size: 0.8em;
+            padding-left: 0.5em;
+            cursor: pointer;
+        }
+
+        &.addable {
+            opacity: 0.5;
+            cursor: pointer;
+
+            &.too-much {
+                background-color: pink;
+            }
+        }
+    }
+
+    .add-comestible {
+        input,
+        button {
+            font-size: 1em;
+            margin-right: 0.5em;
+        }
+
+        .calories {
+            width: 5em;
+        }
+    }
+}
+
+.stats {
+    .filters {
+        padding-bottom: 0.5em;
+
+        input,
+        span {
+            vertical-align: middle;
+        }
+
+        span {
+            font-size: 0.8em;
+        }
+
+        input {
+            margin: 0 1em;
+        }
+    }
+
+    .chart-config {
+        span {
+            font-size: 0.8em;
+            padding: 0 0.5em;
+        }
+    }
+}
+
+.stacked-bar-chart {
+    display: flex;
+    flex-direction: column;
+    padding: 0.4em 0;
+
+    .stacked-bar {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5em;
+
+        .label {
+            flex: 0 0 auto;
+            font-size: 0.5em;
+        }
+
+        .bar {
+            flex: 1 1 auto;
+            position: relative;
+            display: flex;
+
+            .segment {
+                height: 12px;
+            }
+
+            .limit {
+                position: absolute;
+                inset: 0;
+                width: 4px;
+                height: 14px;
+                background-color: magenta;
+            }
+        }
+    }
+}
+
+.stat-box {
+    h3 {
+        font-weight: normal;
+        padding-bottom: 0.3em;
+        margin: 0;
+        border-bottom: 1px solid silver;
+    }
+
+    .number-stat {
+        text-align: center;
+        display: inline-block;
+        margin: 0 1em 1em 0;
+        background: #333;
+        padding: 1em;
+        border-radius: 0.5em;
+
+        .big-number {
+            font-size: 2em;
+        }
+        .little-label {
+            color: darkgray;
+        }
+    }
+
+    .tooltip {
+        background: black;
+        font-size: 0.8rem;
+        color: white;
+        padding: 0.5em;
+        border-radius: 0.5em;
+    }
+
+    text,
+    span.rv-discrete-color-legend-item__title {
+        color: #bbb;
+        fill: #bbb;
+    }
+}
+
+.config {
+    input {
+        font-size: 1.5em;
+    }
+
+    select {
+        margin-right: 1em;
+        padding: 0.2em;
+        font-size: 0.6em;
+    }
+
+    .comestible {
+        margin: 1em 0;
+        padding: 0.5em;
+        background: #333;
+        border-radius: 0.5em;
+
+        .component {
+            display: inline-block;
+            color: darkgrey;
+            background-color: #444;
+            padding: 0 0.4em;
+            margin: 0.2em;
+            border-radius: 0.5em;
+        }
+
+        label {
+            margin-right: 0.5em;
+        }
+
+        input,
+        button {
+            font-size: 1em;
+            margin-right: 0.5em;
+            display: inline-block;
+        }
+
+        .deleting {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5em;
+            input {
+                width: 5em;
+            }
+        }
+        .editing {
+            div {
+                margin: 5px 0;
+            }
+
+            input {
+                width: 5em;
+                margin-right: 4px;
+
+                &.name {
+                    width: 90%;
+                }
+            }
+
+            button {
+                margin-right: 0.5em;
+            }
+        }
+
+        .days {
+            margin-top: 1em;
+
+            .ate {
+                text-decoration: underline;
+                margin-right: 1em;
+                cursor: pointer;
+
+                &:hover {
+                    color: mediumslateblue;
+                }
+            }
+        }
+    }
+}
+
+.pictures {
+    display: flex;
+    flex-direction: row;
+    margin-top: 0.5em;
+    padding: 0 0.5em;
+    height: 4em;
+    overflow-x: auto;
+    overflow-y: hidden;
+    .add {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: silver;
+        font-size: 2em;
+        height: 2em;
+        width: 2em;
+        input[type="file"] {
+            display: none;
+        }
+    }
+    .picture {
+        img {
+            margin-left: 0.5em;
+            height: 4em;
+        }
+    }
+}
+
+.full-date {
+    margin: 0.3em 0 0 0.5em;
+    span {
+        font-size: 0.6em;
+    }
+}
+
+.notes {
+    margin: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    position: relative;
+
+    textarea {
+        position: absolute;
+        inset: 0.5em;
+        font-size: 1em;
+        background: black;
+        color: white;
+    }
+}
+
+.show-picture {
+    overflow: auto;
+    .large-picture {
+        img {
+            width: 100%;
+        }
+    }
+}
+
+.info {
+    text-align: right;
+    padding: 0.2em;
+    font-size: 0.8em;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+    font-size: xx-large;
+    color: gray;
+}

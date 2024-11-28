@@ -1,0 +1,31 @@
+{
+    "name": "cosmos",
+    "devDependencies": {
+        "@types/bun": "latest"
+    },
+    "scripts": {
+        "serve": "http-server -p 8081",
+        "fatboyslim-css": "cp encrypted-storage/styles.css fatboyslim/dist/encrypted-storage.css",
+        "fatboyslim-build": "npm run fatboyslim-css && ./build.sh fatboyslim",
+        "fatboyslim-watch": "npm run fatboyslim-css && ./watch.sh fatboyslim",
+        "spendy-build": "./build.sh spendy",
+        "spendy-watch": "./watch.sh spendy",
+        "vault-build": "./build.sh vault",
+        "vault-watch": "./watch.sh vault",
+        "deploy": "az storage blob upload-batch -d '$web' --account-name earapps -s fatboyslim --overwrite",
+        "bd": "npm run fatboyslim-build && npm run deploy"
+    },
+    "dependencies": {
+        "@azure/storage-blob": "^12.24.0",
+        "@types/react": "^18.3.8",
+        "@types/react-dom": "^18.3.0",
+        "@types/underscore": "^1.11.15",
+        "http-server": "^14.1.1",
+        "immer": "^10.1.1",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "react-router-dom": "^6.26.2",
+        "typescript": "^5.0.0",
+        "underscore": "^1.13.7"
+    }
+}

@@ -1,0 +1,25 @@
+@import "../encrypted-storage/styles.css";
+
+html,
+body,
+#root,
+.app,
+.app-content {
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background: black;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    font-family: sans-serif;
+    font-size: 1.1em;
+}
+
+input,
+select {
+    -webkit-appearance: none;
+    background-color: #444;
+    color: #ddd;
+}
