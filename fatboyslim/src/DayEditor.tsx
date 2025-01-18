@@ -1,15 +1,9 @@
 import { useContext, useMemo } from "react";
 import { AddComestible } from "./AddComestible";
-import {
-    ComestiblesContext,
-    type FatboyData,
-    getFacts,
-    meals,
-    sum,
-} from "./data";
+import { ComestiblesContext, type FatboyData, meals } from "./data";
 import { DatePicker } from "./DatePicker";
-import { MealContents } from "./MealContents";
-import { alreadyPlanned, getDailyLimit, ProgressBar } from "./ProgressBar";
+import { getTotals, MealContents } from "./MealContents";
+import { getDailyLimit, ProgressBar } from "./ProgressBar";
 import { type FatboyAction } from "./reducer";
 import { chain as _ } from "underscore";
 import { EditingDay } from "./editingDay";
@@ -43,9 +37,11 @@ export function DayEditor({ state, dispatch, showComestible }: DayEditorProps) {
         }))
         .filter((x) => !!x.comestible);
 
-    const total = alreadyPlanned(ate);
-    const dailyLimit = getDailyLimit(editingDay.value);
-    const remaining = Math.max(dailyLimit - total);
+    const totals = getTotals(
+        ate.map((a) => ({ ...a.comestible, quantity: a.quantity }))
+    );
+    const dailyLimits = getDailyLimit(editingDay.value);
+    const remainingCalories = Math.max(dailyLimits.calories - totals.calories);
 
     const byMeal = useMemo(
         () =>
@@ -58,19 +54,24 @@ export function DayEditor({ state, dispatch, showComestible }: DayEditorProps) {
         [meals, ate]
     );
 
-    const facts = getFacts(state, comestibles);
-
-    const averageMeal = _(facts)
-        .groupBy((x) => x.meal)
-        .mapObject(
-            (g) => sum(g.map((x) => x.calories)) / (state.days.length || 1)
-        )
-        .value();
-
     return (
         <>
             <DatePicker {...editingDay} />
-            <ProgressBar total={total} dailyLimit={dailyLimit} />
+            <ProgressBar
+                icon={"⚡️"}
+                total={totals.calories}
+                dailyLimit={dailyLimits.calories}
+            />
+            <ProgressBar
+                icon={"💔"}
+                total={totals.satch}
+                dailyLimit={dailyLimits.satch}
+            />
+            <ProgressBar
+                icon={"🦷"}
+                total={totals.sugar}
+                dailyLimit={dailyLimits.sugar}
+            />
             <div className="day">
                 {!existingDay && <p>It's a brand new day!</p>}
                 {byMeal.map((m) => (
@@ -78,8 +79,6 @@ export function DayEditor({ state, dispatch, showComestible }: DayEditorProps) {
                         key={m.meal}
                         meal={m.meal}
                         ate={m.ate}
-                        stats={{ caloriesAverage: averageMeal[m.meal] }}
-                        limit={remaining}
                         dispatch={dispatch}
                         showComestible={showComestible}
                     >
@@ -87,7 +86,7 @@ export function DayEditor({ state, dispatch, showComestible }: DayEditorProps) {
                             key={`${m.meal}_add_comestible`}
                             day={day}
                             meal={m.meal}
-                            limit={remaining}
+                            limit={remainingCalories}
                             state={state}
                             dispatch={dispatch}
                         />

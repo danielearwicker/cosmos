@@ -21,21 +21,29 @@ export type AddComestibleProps = Readonly<{
 }>;
 
 export function getLatestQuantity(state: FatboyData, comestible: string) {
-    let date = "";
-    let quantity = 1;
+    const sorted: [string, number][] = [];
 
     for (const day of state.days) {
-        if (date && day.date < date) continue;
-
         for (const ate of day.ate) {
             if (ate.comestible === comestible) {
-                date = day.date;
-                quantity = ate.quantity;
+                sorted.push([day.date, ate.quantity]);
             }
         }
     }
 
-    return quantity;
+    sorted.sort((l, r) => dateDiff(l[0], r[0]));
+
+    const frequencies: Record<number, number> = {};
+
+    for (const quantity of sorted.map((s) => s[1]).slice(0, 10)) {
+        frequencies[quantity] = (frequencies[quantity] ?? 0) + 1;
+    }
+
+    const mostFrequent = Object.entries(frequencies).sort(
+        (l, r) => r[1] - l[1]
+    )[0];
+
+    return mostFrequent ? parseFloat(mostFrequent[0]) : 1;
 }
 
 export function mostOftenEatenWith(

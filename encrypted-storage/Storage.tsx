@@ -114,7 +114,6 @@ export function Storage({
                     conditions,
                 }
             );
-            console.log("actual version", result.etag);
             return result.etag!;
         },
     };

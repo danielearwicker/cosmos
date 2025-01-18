@@ -12,7 +12,8 @@ import {
 import { chain as _ } from "underscore";
 import { StackedBar } from "./StackedBar";
 import { NumberStat } from "./NumberStat";
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
+import { EditingDay } from "./editingDay";
 import { getDailyLimit } from "./ProgressBar";
 
 interface TypedSelectProps<T extends string> {
@@ -43,12 +44,7 @@ export function Stats({ state }: StatsProps) {
     const comestibles = useContext(ComestiblesContext);
 
     function getLabel(c: string) {
-        const label = comestibles[c]?.label;
-        if (!label) {
-            console.log("getLabel", "missing", c);
-            return "[none]";
-        }
-        return label;
+        return comestibles[c]?.label ?? "[none]";
     }
 
     const [startDate, setStartDate] = useState(addDays(today(), -27));
@@ -106,6 +102,24 @@ export function Stats({ state }: StatsProps) {
 
     const showLine =
         measure === "calories" && bar === "day" && segment === "meal";
+
+    const getDayLimit = useMemo(() => {
+        if (bar === "day" || segment === "meal") {
+            if (measure === "calories") {
+                return (day: string) => getDailyLimit(day).calories;
+            }
+            if (measure === "sugar (g)") {
+                return (day: string) => getDailyLimit(day).sugar;
+            }
+            if (measure === "satch (g)") {
+                return (day: string) => getDailyLimit(day).satch;
+            }
+        }
+
+        return undefined;
+    }, [measure, bar, segment]);
+
+    const editingDay = useContext(EditingDay);
 
     return (
         <div className="stats">
@@ -165,7 +179,12 @@ export function Stats({ state }: StatsProps) {
                         : measures[measure](fact) / dayCount,
                     date: isDate ? fact.date : "none",
                 }))}
-                limit={!showLine ? undefined : getDailyLimit}
+                limit={getDayLimit}
+                onClick={
+                    bar === "day"
+                        ? (day) => editingDay.onChange(day, "meals")
+                        : undefined
+                }
             />
         </div>
     );

@@ -1,11 +1,10 @@
 import { Storage } from "../../encrypted-storage/Storage";
-// import { azureBackend } from "../../encrypted-storage/azureBackend";
-import { localStorageBackend } from "../../encrypted-storage/localStorageBackend";
+import { azureBackend } from "../../encrypted-storage/azureBackend";
 import { Vault } from "./Vault";
 
 export default function App() {
     return (
-        <Storage backend={localStorageBackend} app="vault">
+        <Storage backend={azureBackend} app="vault">
             <Vault />
         </Storage>
     );

@@ -1,6 +1,7 @@
-import { sum } from "./data";
+import { formatNumber, sum } from "./data";
 import { chain as _ } from "underscore";
 import { useState } from "react";
+import { neatNumber } from "./MealContents";
 
 export interface StackedBarProps {
     title?: string;
@@ -13,13 +14,15 @@ export interface StackedBarProps {
     segments?: string[];
     sort?: "bar" | "value";
     limit?(bar: string): number;
+    onClick?(bar: string): void;
 }
 
 // Ripped from react-viz
 const segmentColours = [
     "#12939A",
     "#79C7E3",
-    "#1A3177",
+
+    "#1E96BE",
     "#FF9833",
     "#EF5D28",
     "#19CDD7",
@@ -40,7 +43,7 @@ const segmentColours = [
     "#F89570",
     "#829AE3",
     "#E79FD5",
-    "#1E96BE",
+    "#1A3177",
     "#89DAC1",
     "#B3AD9E",
 ];
@@ -55,6 +58,7 @@ export function StackedBar({
     segments,
     sort,
     limit,
+    onClick,
 }: React.PropsWithChildren<StackedBarProps>) {
     segments ??= _(source)
         .filter((x) => x.value > 0)
@@ -102,18 +106,26 @@ export function StackedBar({
         value: number;
     }>();
 
-    const maxBar = bars
-        .map((b) => sum(segments.map((s) => cells[cellKey(b, s)] ?? 0)))
-        .reduce((l, r) => Math.max(l, r), 0);
+    const totals = bars.map((b) =>
+        sum(segments.map((s) => cells[cellKey(b, s)] ?? 0))
+    );
+
+    const maxBar = totals.reduce((l, r) => Math.max(l, r), 0);
 
     return (
         <div className="stat-box">
             {title && <h3>{title}</h3>}
-            <div className="stacked-bar-chart">
-                {bars.map((bar) => (
-                    <div className="stacked-bar">
-                        <div className="label">{bar}</div>
-                        <div className="bar">
+            <div className="stacked-bar-chart" style={{ gridAutoRows: "auto" }}>
+                {bars.map((bar, barIndex) => (
+                    <>
+                        <div
+                            style={{ gridRow: barIndex + 1 }}
+                            className="label"
+                            onClick={() => onClick?.(bar)}
+                        >
+                            {bar}
+                        </div>
+                        <div style={{ gridRow: barIndex + 1 }} className="bar">
                             {segments.map((segment, s) => (
                                 <div
                                     className="segment"
@@ -131,6 +143,7 @@ export function StackedBar({
                                     }}
                                 />
                             ))}
+
                             {limit && (
                                 <div
                                     className="limit"
@@ -140,7 +153,13 @@ export function StackedBar({
                                 />
                             )}
                         </div>
-                    </div>
+                        <div
+                            style={{ gridRow: barIndex + 1 }}
+                            className="amount"
+                        >
+                            {neatNumber(totals[barIndex])}
+                        </div>
+                    </>
                 ))}
             </div>
         </div>

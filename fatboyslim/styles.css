@@ -74,12 +74,14 @@ select {
         font-size: 0.8em;
         margin-right: 0.5em;
     }
+    margin-bottom: 0.5em;
 }
 
 .day,
 .stats,
 .config,
-.measurements {
+.measurements,
+.pills {
     padding: 0.5em;
     flex: 1 1 auto;
     overflow: auto;
@@ -95,21 +97,33 @@ select {
 }
 
 .calorie-bar {
-    margin: 0.5em;
-    border-radius: 0.5em;
+    margin: 0 0.5em 0.2em 0.5em;
+    border-radius: 0.3em;
     background: #555;
     position: relative;
 
     .progress {
-        height: 1.2em;
-        background: #b69;
-        border-radius: 0.5em;
+        height: 0.7em;
+        background: #587;
+        border-radius: 0.3em;
+
+        &.over {
+            background: #b69;
+        }
+    }
+
+    .icon {
+        font-size: 0.4em;
+        position: relative;
+        top: -1px;
     }
 
     .remaining,
     .ate {
         position: absolute;
-        top: 1px;
+        top: -1px;
+        font-size: 0.6em;
+        vertical-align: top;
     }
 
     .ate {
@@ -138,6 +152,11 @@ select {
         .calories {
             font-style: italic;
         }
+    }
+
+    .divider {
+        color: black;
+        padding: 0.3em;
     }
 
     .comestible {
@@ -238,38 +257,38 @@ select {
 }
 
 .stacked-bar-chart {
-    display: flex;
-    flex-direction: column;
-    padding: 0.4em 0;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    column-gap: 0.5em;
 
-    .stacked-bar {
+    .label {
+        grid-column: 1;
+        font-size: 0.9em;
+    }
+
+    .bar {
+        grid-column: 2;
+        position: relative;
         display: flex;
         flex-direction: row;
-        align-items: center;
-        gap: 0.5em;
 
-        .label {
-            flex: 0 0 auto;
-            font-size: 0.5em;
+        .segment {
+            height: 22px;
         }
 
-        .bar {
-            flex: 1 1 auto;
-            position: relative;
-            display: flex;
-
-            .segment {
-                height: 12px;
-            }
-
-            .limit {
-                position: absolute;
-                inset: 0;
-                width: 4px;
-                height: 14px;
-                background-color: magenta;
-            }
+        .limit {
+            position: absolute;
+            inset: 0;
+            width: 4px;
+            height: 22px;
+            background-color: magenta;
+            opacity: 0.5;
         }
+    }
+
+    .amount {
+        grid-column: 3;
     }
 }
 
@@ -313,14 +332,49 @@ select {
 }
 
 .config {
-    input {
-        font-size: 1.5em;
+    .search-bar {
+        display: flex;
+        flex-direction: row;
+        gap: 0.2em;
+
+        input {
+            font-size: 1.5em;
+            flex: auto 1 1;
+            width: 0;
+        }
+
+        button {
+            border: none;
+            background: transparent;
+            flex: auto 0 0;
+            font-size: 2em;
+            padding: 0;
+        }
     }
 
     select {
         margin-right: 1em;
         padding: 0.2em;
         font-size: 0.6em;
+    }
+
+    .limits {
+        margin-top: 0.5em;
+        span {
+            font-size: 0.8em;
+        }
+
+        input {
+            border: 1px solid white;
+            font-size: 1em;
+            width: 5em;
+        }
+
+        .clear {
+            border: none;
+            background: none;
+            font-size: 1em;
+        }
     }
 
     .comestible {
@@ -422,6 +476,9 @@ select {
 
 .full-date {
     margin: 0.3em 0 0 0.5em;
+    display: flex;
+    flex-direction: row;
+    gap: 0.5em;
     span {
         font-size: 0.6em;
     }
@@ -447,6 +504,73 @@ select {
     .large-picture {
         img {
             width: 100%;
+        }
+    }
+}
+
+.pills {
+    padding: 0 0.5em;
+    .date-time {
+        .time {
+            padding-left: 0.5em;
+            display: flex;
+            flex-direction: row;
+            gap: 0.5em;
+
+            input {
+                width: 5em;
+            }
+        }
+        margin-bottom: 1em;
+    }
+    .pill-buttons {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.5em;
+        .pill {
+            display: flex;
+            flex-direction: row;
+            gap: 0.5em;
+        }
+    }
+
+    h2 {
+        font-size: 1.2rem;
+    }
+
+    .doses {
+        .dose {
+            display: flex;
+            flex-direction: row;
+            gap: 0.5em;
+            .time {
+                width: 5em;
+            }
+
+            .remove {
+                background: none;
+                border: none;
+                cursor: pointer;
+            }
+        }
+    }
+
+    .add-pill {
+        margin-top: 1em;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
+    }
+
+    .pill-editor {
+        margin-top: 1em;
+
+        .action-buttons {
+            margin-top: 1em;
+            display: flex;
+            flex-direction: row;
+            gap: 0.5em;
         }
     }
 }

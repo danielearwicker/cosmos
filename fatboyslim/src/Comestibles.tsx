@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
     categories,
     type Category,
@@ -16,6 +16,72 @@ export interface ConfigProps {
     setEditingDay(day: string): void;
     search: string;
     setSearch(name: string): void;
+}
+
+const limitTypes = ["calories", "sugar", "satch"] as const;
+
+type LimitType = (typeof limitTypes)[number];
+
+type LimitsAsStrings = {
+    [P in LimitType]: string;
+};
+
+type LimitsAsNumbers = {
+    [P in LimitType]: number;
+};
+
+function getLimitsAsNumbers(asStrings: LimitsAsStrings): LimitsAsNumbers {
+    const result: LimitsAsNumbers = {
+        calories: Number.MAX_VALUE,
+        sugar: Number.MAX_VALUE,
+        satch: Number.MAX_VALUE,
+    };
+
+    for (const type of limitTypes) {
+        const parsed = parseFloat(asStrings[type]);
+        if (!isNaN(parsed)) {
+            result[type] = parsed;
+        }
+    }
+
+    return result;
+}
+
+function LimitEditor({
+    limits,
+    update,
+    type,
+}: {
+    limits: LimitsAsStrings;
+    update: React.Dispatch<React.SetStateAction<LimitsAsStrings>>;
+    type: LimitType;
+}) {
+    const change = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) =>
+            update((prev) => ({ ...prev, [type]: e.target.value })),
+        [update, type]
+    );
+
+    const clear = useCallback(
+        () => update((prev) => ({ ...prev, [type]: "" })),
+        [update, type]
+    );
+
+    return (
+        <tr>
+            <td>
+                <span>{type}</span>
+            </td>
+            <td>
+                <input value={limits[type]} onChange={change} />
+            </td>
+            <td>
+                <button className="clear" onClick={clear}>
+                    ❎
+                </button>
+            </td>
+        </tr>
+    );
 }
 
 export function Comestibles({
@@ -74,22 +140,50 @@ export function Comestibles({
         ? sorted
         : sorted.filter((x) => x.category === category);
 
+    const [limits, setLimits] = useState({
+        calories: "",
+        sugar: "",
+        satch: "",
+    });
+
+    const limitsAsNumbers = getLimitsAsNumbers(limits);
+
+    const filteredByLimits = filteredByCategory.filter(
+        (x) =>
+            x.calories < limitsAsNumbers.calories &&
+            (!x.sugar || x.sugar <= limitsAsNumbers.sugar) &&
+            (!x.satch || x.satch <= limitsAsNumbers.satch)
+    );
+
+    const [showLimits, setShowLimits] = useState(false);
+
     const filtered =
         search.trim().length === 0
-            ? filteredByCategory
-            : searchComestibles(
-                  filteredByCategory,
-                  search,
-                  Number.MAX_VALUE
-              ).map((x) => x.comestible);
+            ? filteredByLimits
+            : searchComestibles(filteredByLimits, search, Number.MAX_VALUE).map(
+                  (x) => x.comestible
+              );
+
+    const searchInput = useRef<HTMLInputElement>(null);
 
     return (
         <div className="config">
-            <input
-                placeholder="filter"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-            />
+            <div className="search-bar">
+                <input
+                    ref={searchInput}
+                    placeholder="filter"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
+                <button
+                    onClick={() => {
+                        setSearch("");
+                        searchInput.current?.focus();
+                    }}
+                >
+                    ❎
+                </button>
+            </div>
             <br />
             <select value={sort} onChange={(e) => setSort(e.target.value)}>
                 <option value="alpha">Sort alphabetically</option>
@@ -118,6 +212,29 @@ export function Comestibles({
                     <option key={cat}>{cat}</option>
                 ))}
             </select>
+            {showLimits ? (
+                <table className="limits">
+                    <tbody>
+                        {limitTypes.map((type) => (
+                            <LimitEditor
+                                key={type}
+                                type={type}
+                                limits={limits}
+                                update={setLimits}
+                            />
+                        ))}
+                        <tr>
+                            <td colSpan={2}>
+                                <button onClick={() => setShowLimits(false)}>
+                                    Hide
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            ) : (
+                <button onClick={() => setShowLimits(true)}>Limits</button>
+            )}
             {filtered.map((comestible) => (
                 <ComestibleEditor
                     key={comestible.id}

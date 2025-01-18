@@ -66,7 +66,7 @@ export function Notes({ state, dispatch }: NotesProps) {
                 await cacheImage(id, file);
 
                 dispatch({
-                    type: "ADD_NOTE_PICTURE",
+                    type: "ADD_NOTE_ATTACHMENT",
                     editingDay: editingDay.value,
                     id: id,
                     contentType: file.type,
@@ -119,7 +119,7 @@ export function Notes({ state, dispatch }: NotesProps) {
     function removePicture() {
         if (showingPicture) {
             dispatch({
-                type: "REMOVE_NOTE_PICTURE",
+                type: "REMOVE_NOTE_ATTACHMENT",
                 id: showingPicture,
                 editingDay: editingDay.value,
             });
@@ -139,6 +139,41 @@ export function Notes({ state, dispatch }: NotesProps) {
                 <button onClick={removePicture}>Remove picture</button>
             </div>
         );
+    }
+
+    function toNote(by: number) {
+        const sorted = state.notes
+            .slice()
+            .sort((l, r) => l.date.localeCompare(r.date));
+
+        let current: number | undefined = undefined;
+
+        for (let i = 0; i < sorted.length; i++) {
+            const noteDay = sorted[i].date;
+            const compared = noteDay.localeCompare(editingDay.value);
+            if (compared === 0) {
+                current = i;
+                break;
+            } else if (compared > 0) {
+                if (by === 1) {
+                    current = i - 1;
+                } else {
+                    current = i;
+                }
+                break;
+            }
+        }
+
+        if (current !== undefined) {
+            current += by;
+            if (current < 0) {
+                current = sorted.length - 1;
+            }
+            if (current >= sorted.length) {
+                current = 0;
+            }
+            editingDay.onChange(sorted[current].date);
+        }
     }
 
     return (
@@ -166,7 +201,9 @@ export function Notes({ state, dispatch }: NotesProps) {
                 })}
             </div>
             <div className="full-date">
+                <button onClick={() => toNote(-1)}>Previous</button>
                 <span>{new Date(editingDay.value).toDateString()}</span>
+                <button onClick={() => toNote(1)}>Next</button>
             </div>
             <div className="notes">
                 <textarea

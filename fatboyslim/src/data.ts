@@ -101,7 +101,7 @@ export type Ate = Readonly<{
 }>;
 
 // ISO format, but cannot use toISOString which returns UTC. We want local TZ date
-export function isoDate(d: Date) {
+export function isoDate(d: Date | number) {
     if (typeof d === "number") {
         const s = `${d}`;
         return `${s.substring(0, 4)}-${s.substring(4, 6)}-${s.substring(6)}`;
@@ -149,35 +149,50 @@ export function startOfMonth(d: string) {
 
 export type Day = Readonly<{
     date: string;
-    ate: Ate[];
+    ate: readonly Ate[];
 }>;
 
 export const measurementTypes = ["Waist/cm", "Weight/kg"] as const;
 
 export type MeasurementType = (typeof measurementTypes)[number];
 
-export interface Measurement {
+export type Measurement = Readonly<{
     value: number;
     date: string;
     type: MeasurementType;
-}
+}>;
 
-export interface Picture {
+export type Attachment = Readonly<{
     id: string;
     type: string;
-}
+    tags: readonly string[];
+}>;
 
-export interface Note {
+export type Note = Readonly<{
     text: string;
     date: string;
-    pictures: Picture[];
-}
+    pictures: readonly Attachment[]; // not actually limited to pictures!
+}>;
+
+export type Pill = Readonly<{
+    id: string;
+    name: string;
+    hoursBetweenDoses: number;
+    maxDosesPerDay: number;
+}>;
+
+export type Dose = Readonly<{
+    time: number; // ms since epoch
+    pill: string;
+}>;
 
 export type FatboyData = Readonly<{
-    measurements: Measurement[];
+    measurements: readonly Measurement[];
     comestibles: readonly Comestible[];
     days: readonly Day[];
-    notes: Note[];
+    notes: readonly Note[];
+    pills: readonly Pill[];
+    doses: readonly Dose[];
 }>;
 
 export function sum(ar: number[]) {

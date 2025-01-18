@@ -1,27 +1,33 @@
-import { memo, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { Body } from "./Body";
 import { Comestibles } from "./Comestibles";
 import { DayEditor } from "./DayEditor";
 import { Notes } from "./Notes";
 import { useFatboyStorage } from "./reducer";
 import { Stats } from "./Stats";
-import { ComestiblesContext, generateComestibleContext, today } from "./data";
-import { EditingDay, useEditingDayProvider } from "./editingDay";
-
-const tabs = ["day", "stats", "comestibles", "body", "notes"] as const;
-type Tab = (typeof tabs)[number];
+import { ComestiblesContext, generateComestibleContext } from "./data";
+import {
+    EditingDay,
+    tabs,
+    useEditingDayProvider,
+    type Tab,
+} from "./editingDay";
+import { Pills } from "./Pills";
 
 export const Tabs = memo(() => {
     const [state, dispatch, info] = useFatboyStorage();
 
-    const [tab, setTab] = useState<Tab>("day");
+    const [tab, setTab] = useState<Tab>("meals");
     const [search, setSearch] = useState<string>("");
-    const editingDay = useEditingDayProvider();
 
-    function showComestible(name: string) {
-        setSearch(name);
-        setTab("comestibles");
-    }
+    const editingDay = useEditingDayProvider(setTab);
+
+    const showComestible = useCallback((name: string) => {
+        setTimeout(() => {
+            setSearch(name);
+            setTab("comestibles");
+        }, 1);
+    }, []);
 
     const counts: Partial<Record<Tab, number>> = {
         comestibles: state.comestibles.filter((x) => x.category === "other")
@@ -55,7 +61,7 @@ export const Tabs = memo(() => {
                             </div>
                         ))}
                     </div>
-                    {tab === "day" ? (
+                    {tab === "meals" ? (
                         <DayEditor
                             state={state}
                             dispatch={dispatch}
@@ -67,10 +73,9 @@ export const Tabs = memo(() => {
                         <Comestibles
                             state={state}
                             dispatch={dispatch}
-                            setEditingDay={(day) => {
-                                editingDay.onChange(day);
-                                setTab("day");
-                            }}
+                            setEditingDay={(day) =>
+                                editingDay.onChange(day, "meals")
+                            }
                             search={search}
                             setSearch={setSearch}
                         />
@@ -78,6 +83,8 @@ export const Tabs = memo(() => {
                         <Body state={state} dispatch={dispatch} />
                     ) : tab === "notes" ? (
                         <Notes state={state} dispatch={dispatch} />
+                    ) : tab === "pills" ? (
+                        <Pills state={state} dispatch={dispatch} />
                     ) : undefined}
                     <div className="info">{info}</div>
                 </div>

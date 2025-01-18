@@ -1,56 +1,59 @@
 import { memo } from "react";
-import { type Comestible, formatNumber } from "./data";
+import { neatNumber } from "./MealContents";
 
 type DailyLimitPeriod = {
-    limit: number;
+    calories: number;
+    satch: number;
+    sugar: number;
     startDate: string;
 };
 
 export const dailyLimitPeriods: DailyLimitPeriod[] = [
-    { startDate: "2024-10-10", limit: 2050 },
-    { startDate: "2024-04-29", limit: 2100 },
-    { startDate: "2023-08-07", limit: 2200 },
-    { startDate: "2023-02-12", limit: 2000 },
-    { startDate: "2022-12-10", limit: 1900 },
-    { startDate: "2022-08-10", limit: 1800 },
+    { startDate: "2024-12-12", calories: 2050, satch: 26, sugar: 60 },
+    { startDate: "2024-10-10", calories: 2050, satch: 50, sugar: 80 },
+    { startDate: "2024-04-29", calories: 2100, satch: 50, sugar: 80 },
+    { startDate: "2023-08-07", calories: 2200, satch: 50, sugar: 80 },
+    { startDate: "2023-02-12", calories: 2000, satch: 50, sugar: 80 },
+    { startDate: "2022-12-10", calories: 1900, satch: 50, sugar: 80 },
+    { startDate: "2022-08-10", calories: 1800, satch: 50, sugar: 80 },
 ];
 
 export function getDailyLimit(day: string) {
     for (const p of dailyLimitPeriods) {
         if (day >= p.startDate) {
-            return p.limit;
+            return p;
         }
     }
 
-    return 5000;
+    return { calories: 5000, satch: 100, sugar: 100 };
 }
 
 export interface ProgressBarProps {
     total: number;
     dailyLimit: number;
+    icon: string;
 }
 
-export function alreadyPlanned(
-    ate: { comestible: Comestible; quantity: number }[]
-) {
-    return ate
-        .map((a) => a.comestible.calories * a.quantity)
-        .reduce((l, r) => l + r, 0);
-}
+export const ProgressBar = memo(
+    ({ total, dailyLimit, icon }: ProgressBarProps) => {
+        const progress = (100 * Math.min(total, dailyLimit)) / dailyLimit;
+        const over = total > dailyLimit ? "over" : "";
 
-export const ProgressBar = memo(({ total, dailyLimit }: ProgressBarProps) => {
-    const progress = (100 * total) / dailyLimit;
-
-    return total > dailyLimit ? (
-        <h2 className="over-the-limit">
-            You are {Math.round(total - dailyLimit)} (
-            {Math.round(progress - 100)}%) over your limit!
-        </h2>
-    ) : (
-        <div className="calorie-bar">
-            <div className="progress" style={{ width: `${progress}%` }} />
-            <div className="ate">{formatNumber(total)}</div>
-            <div className="remaining">{formatNumber(dailyLimit - total)}</div>
-        </div>
-    );
-});
+        return (
+            <div className="calorie-bar">
+                <div
+                    className={`progress ${over}`}
+                    style={{ width: `${progress}%` }}
+                />
+                <div className="ate">
+                    <span className="icon">{icon}</span> {neatNumber(total)}
+                </div>
+                <div className="remaining">
+                    {total > dailyLimit
+                        ? `over by ${neatNumber(total - dailyLimit)}`
+                        : neatNumber(dailyLimit - total)}
+                </div>
+            </div>
+        );
+    }
+);

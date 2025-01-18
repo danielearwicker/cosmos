@@ -4,32 +4,42 @@ import { type ComestibleWithQuantities, type Meal } from "./data";
 import { type FatboyAction } from "./reducer";
 import { EditingDay } from "./editingDay";
 
+export type AteItem = ComestibleWithQuantities & {
+    quantity: number;
+};
+
 export interface MealProps {
     meal: Meal;
-    ate: (ComestibleWithQuantities & {
-        quantity: number;
-    })[];
-    stats: {
-        caloriesAverage: number;
-    };
-    limit: number;
+    ate: AteItem[];
     dispatch: React.Dispatch<FatboyAction>;
     showComestible(name: string): void;
     children: ReactNode;
 }
 
+export function neatNumber(num: number) {
+    return num.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+}
+
+export function totalOf<T>(list: T[], get: (i: T) => number) {
+    return list.map(get).reduce((l, r) => l + r, 0);
+}
+
+export function getTotals(ate: AteItem[]) {
+    return {
+        calories: totalOf(ate, (x) => x.calories * x.quantity),
+        satch: totalOf(ate, (x) => (x.satch ?? 0) * x.quantity),
+        sugar: totalOf(ate, (x) => (x.sugar ?? 0) * x.quantity),
+    };
+}
+
 export const MealContents = ({
     meal,
     ate,
-    stats,
-    limit,
     dispatch,
     showComestible,
     children,
 }: MealProps) => {
-    const totalCalories = ate
-        .map((x) => x.calories * x.quantity)
-        .reduce((l, r) => l + r, 0);
+    const totals = getTotals(ate);
 
     const editingDay = useContext(EditingDay).value;
 
@@ -51,19 +61,16 @@ export const MealContents = ({
         }
     }
 
-    const percentageOfAverage = (100 * totalCalories) / stats.caloriesAverage;
-
     return (
         <div className="meal">
             <div className="meal-heading">
                 <div className="title">{meal}</div>
                 <div className="calories">
-                    {totalCalories
-                        .toFixed(2)
-                        .replace(/0+$/, "")
-                        .replace(/\.$/, "")}{" "}
-                    {!isNaN(percentageOfAverage) &&
-                        `(${percentageOfAverage.toFixed(0)}%)`}
+                    ⚡️{neatNumber(totals.calories)}
+                    <span className="divider">|</span>💔
+                    {neatNumber(totals.satch)}
+                    <span className="divider">|</span>🦷
+                    {neatNumber(totals.sugar)}
                 </div>
             </div>
             <div className="ate">

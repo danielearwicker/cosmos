@@ -64,13 +64,13 @@ export function localStorageBackend(
     name: string
 ): AbstractBlobClient {
     return {
-        download() {
+        async download() {
             const result = localStorage.getItem(name);
             if (!result) {
-                return Promise.resolve({
+                return {
                     etag: undefined,
                     blobBody: undefined,
-                });
+                };
             }
 
             const etag = result.substring(0, guidLength);
@@ -78,20 +78,35 @@ export function localStorageBackend(
                 hexToBytes(result, guidLength, result.length - guidLength),
             ]);
 
-            return Promise.resolve({
+            await new Promise((done) => window.setTimeout(done, 3000));
+
+            return {
                 etag,
                 blobBody: Promise.resolve(blob),
-            });
+            };
         },
-        uploadData(data, options) {
-            // const etag = options.conditions?.ifMatch;
+        async uploadData(data, options) {
+            await new Promise((done) => window.setTimeout(done, 3000));
+
+            if (Math.random() > 0.5) {
+                console.log("Test fail");
+                throw new Error("Test fail");
+            }
+
+            const saved = localStorage.getItem(name);
+            if (saved) {
+                const oldEtag = saved.substring(0, guidLength);
+                const expected = options?.conditions?.ifMatch;
+                if (expected && expected !== oldEtag) {
+                    throw new Error("Wrong etag");
+                }
+            }
 
             const etag = crypto.randomUUID();
             const value = etag + bytesToHex(data);
 
             localStorage.setItem(name, value);
-
-            return Promise.resolve({ etag });
+            return { etag };
         },
     };
 }
