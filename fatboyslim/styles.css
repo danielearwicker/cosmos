@@ -556,13 +556,16 @@ select {
         }
     }
 
-    .add-pill {
+    .issues {
         margin-top: 1em;
         display: flex;
         flex-direction: column;
         gap: 0.5em;
-    }
 
+        .issue {
+            color: fuchsia;
+        }
+    }
     .pill-editor {
         margin-top: 1em;
 

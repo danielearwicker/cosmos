@@ -109,7 +109,30 @@ export function Pills({ state, dispatch }: PillsProps) {
             .sort((l, r) => {
                 return r.time - l.time;
             });
-    }, [state.doses, nowMinus24Hours]);
+    }, [state.doses, nowMinus24Hours, state.pills]);
+
+    const issues = useMemo(() => {
+        const issues: string[] = [];
+        for (const pill of state.pills) {
+            const doses = dosesInLast24Hours.filter(
+                (d) => d.pill.id === pill.id
+            );
+            if (doses.length > pill.maxDosesPerDay) {
+                issues.push(
+                    `More than ${pill.maxDosesPerDay} of ${pill.name} in 24 hours!`
+                );
+            }
+            for (let i = 1; i < doses.length; i++) {
+                if (
+                    doses[i - 1].time - doses[i].time <
+                    pill.hoursBetweenDoses * hourInMs
+                ) {
+                    issues.push(`Doses of ${pill.name} too close together!`);
+                }
+            }
+        }
+        return issues;
+    }, [dosesInLast24Hours, state.pills]);
 
     // local midnight on viewing day
     const midnightDate = new Date(now);
@@ -198,13 +221,21 @@ export function Pills({ state, dispatch }: PillsProps) {
                     </button>
                 ))}
             </div>
+            {issues.length > 0 && (
+                <div className="issues">
+                    {issues.map((issue) => (
+                        <div key={issue} className="issue">
+                            {issue}
+                        </div>
+                    ))}
+                </div>
+            )}
             <Doses doses={todayDoses} heading="Today" dispatch={dispatch} />
             <Doses
                 doses={yesterdayDoses}
                 heading="Yesterday"
                 dispatch={dispatch}
             />
-            <NewPill add={(pill) => dispatch({ type: "ADD_PILL", ...pill })} />
             <PillEditor pills={state.pills} dispatch={dispatch} />
         </div>
     );
@@ -259,51 +290,6 @@ function Doses({
                     dispatch={dispatch}
                 />
             ))}
-        </div>
-    );
-}
-
-function NewPill({ add }: { add: (pill: Pill) => void }) {
-    const [name, setName] = useState("");
-    const [hoursBetweenDoses, setHoursBetweenDoses] = useState(NaN);
-    const [maxDosesPerDay, setMaxDosesPerDay] = useState(NaN);
-
-    return (
-        <div className="add-pill">
-            <div>Add a new type of pill</div>
-            <input
-                type="text"
-                placeholder="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-            />
-            <input
-                type="number"
-                placeholder="hours between doses"
-                value={isNaN(hoursBetweenDoses) ? "" : hoursBetweenDoses}
-                onChange={(e) =>
-                    setHoursBetweenDoses(parseFloat(e.target.value))
-                }
-            />
-            <input
-                type="number"
-                placeholder="max doses in 24 hours"
-                value={isNaN(maxDosesPerDay) ? "" : maxDosesPerDay}
-                onChange={(e) => setMaxDosesPerDay(parseFloat(e.target.value))}
-            />
-            <button
-                disabled={
-                    !name || isNaN(hoursBetweenDoses) || isNaN(maxDosesPerDay)
-                }
-                onClick={() => {
-                    add({ id: "", name, hoursBetweenDoses, maxDosesPerDay });
-                    setName("");
-                    setHoursBetweenDoses(NaN);
-                    setMaxDosesPerDay(NaN);
-                }}
-            >
-                Save
-            </button>
         </div>
     );
 }
@@ -374,12 +360,11 @@ function PillEditor({
 
     return (
         <div className="pill-editor">
-            <div>Edit a pill</div>
             <select
                 value={editing?.id ?? ""}
                 onChange={(e) => edit(e.target.value)}
             >
-                <option value="">Select a pill to edit</option>
+                <option value="">Add a new type of pill</option>
                 {pills.map((pill) => (
                     <option key={pill.id} value={pill.id}>
                         {pill.name}
@@ -387,60 +372,74 @@ function PillEditor({
                 ))}
             </select>
 
-            {editing && (
-                <>
-                    <div className="name">
+            <table>
+                <tr>
+                    <td>Name</td>
+                    <td>
                         <input
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                         />
-                    </div>
-                    <div className="hours-between-doses">
-                        Hours between doses
+                    </td>
+                </tr>
+                <tr>
+                    <td>Hours between doses</td>
+                    <td>
                         <NumberEditor
                             value={hoursBetweenDoses}
                             onChange={setHoursBetweenDoses}
                             allowInvalid={true}
                         />
-                    </div>
-                    <div className="max-doses-per-day">
-                        Max per 24 hours
+                    </td>
+                </tr>
+                <tr>
+                    <td>Max per 24 hours</td>
+                    <td>
                         <NumberEditor
                             value={maxDosesPerDay}
                             onChange={setMaxDosesPerDay}
                             allowInvalid={true}
                         />
-                    </div>
+                    </td>
+                </tr>
+            </table>
 
-                    <div className="action-buttons">
-                        <button
-                            disabled={
-                                !name.trim() ||
-                                isNaN(hoursBetweenDoses) ||
-                                isNaN(maxDosesPerDay) ||
-                                (name === editing?.name &&
-                                    hoursBetweenDoses ===
-                                        editing?.hoursBetweenDoses &&
-                                    maxDosesPerDay === editing?.maxDosesPerDay)
-                            }
-                            onClick={() => {
-                                dispatch({
-                                    type: "UPDATE_PILL",
-                                    id: editing!.id,
-                                    name: name,
-                                    hoursBetweenDoses: hoursBetweenDoses,
-                                    maxDosesPerDay: maxDosesPerDay,
-                                });
-                                edit("");
-                            }}
-                        >
-                            Save
-                        </button>
-                        <button onClick={() => edit("")}>Cancel</button>
-                    </div>
-                </>
-            )}
+            <div className="action-buttons">
+                <button
+                    disabled={
+                        !name.trim() ||
+                        isNaN(hoursBetweenDoses) ||
+                        isNaN(maxDosesPerDay) ||
+                        (name === editing?.name &&
+                            hoursBetweenDoses === editing?.hoursBetweenDoses &&
+                            maxDosesPerDay === editing?.maxDosesPerDay)
+                    }
+                    onClick={() => {
+                        const pill = {
+                            name,
+                            hoursBetweenDoses,
+                            maxDosesPerDay,
+                        };
+                        if (!editing) {
+                            dispatch({
+                                type: "ADD_PILL",
+                                ...pill,
+                            });
+                        } else {
+                            dispatch({
+                                type: "UPDATE_PILL",
+                                id: editing!.id,
+                                ...pill,
+                            });
+                        }
+                        edit("");
+                    }}
+                >
+                    {editing ? "Save" : "Add"}
+                </button>
+                {editing && <button onClick={() => edit("")}>Cancel</button>}
+            </div>
         </div>
     );
 }
