@@ -159,13 +159,14 @@ export function Comestibles({
 
     const [showLimits, setShowLimits] = useState(false);
 
-    const filtered = (
+    const filtered =
         search.trim().length === 0
             ? filteredByLimits
             : searchComestibles(filteredByLimits, search, Number.MAX_VALUE).map(
                   (x) => x.comestible
-              )
-    ).slice(0, 100);
+              );
+
+    const sliced = filtered.slice(0, 100);
 
     const searchInput = useRef<HTMLInputElement>(null);
 
@@ -238,7 +239,8 @@ export function Comestibles({
             ) : (
                 <button onClick={() => setShowLimits(true)}>Limits</button>
             )}
-            {filtered.map((comestible) => (
+            <span className="result-count">{filtered.length} results</span>
+            {sliced.map((comestible) => (
                 <ComestibleEditor
                     key={comestible.id}
                     comestible={comestible}
