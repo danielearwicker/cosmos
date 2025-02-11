@@ -9,6 +9,8 @@ import {
 } from "./data";
 import type { FatboyAction } from "./reducer";
 import { chain as _ } from "underscore";
+import { useStorage } from "../../encrypted-storage/Storage";
+import { handleNutritionPhoto } from "./ai";
 
 export interface ConfigProps {
     state: FatboyData;
@@ -157,12 +159,13 @@ export function Comestibles({
 
     const [showLimits, setShowLimits] = useState(false);
 
-    const filtered =
+    const filtered = (
         search.trim().length === 0
             ? filteredByLimits
             : searchComestibles(filteredByLimits, search, Number.MAX_VALUE).map(
                   (x) => x.comestible
-              );
+              )
+    ).slice(0, 100);
 
     const searchInput = useRef<HTMLInputElement>(null);
 
@@ -317,6 +320,27 @@ function ComestibleEditor({
         [comestibles, filter, comestible]
     );
 
+    const openApiKey = useStorage().extra.openAiKey;
+
+    const [aiFeedback, setAiFeedback] = useState("");
+
+    const handlePhoto = useCallback(
+        async (ev: React.ChangeEvent<HTMLInputElement>) => {
+            const result = await handleNutritionPhoto(
+                openApiKey,
+                ev,
+                setAiFeedback
+            );
+            if (result) {
+                setAiFeedback(`For serving size: ${result.serving_size}`);
+                setCalories(`${result.energy_kcal}`);
+                setSatch(`${result.saturated_fat_g}`);
+                setSugar(`${result.sugar_g}`);
+            }
+        },
+        [openApiKey]
+    );
+
     return (
         <div
             key={comestible.id}
@@ -425,6 +449,7 @@ function ComestibleEditor({
             )}
             {editing && (
                 <div className="editing">
+                    {aiFeedback && <div>{aiFeedback}</div>}
                     <div>
                         <input
                             className="name"
@@ -516,6 +541,16 @@ function ComestibleEditor({
                         <button onClick={() => setEditing(false)}>
                             Cancel
                         </button>
+
+                        <label htmlFor="photo-picker">📸</label>
+                        <input
+                            id="photo-picker"
+                            style={{ display: "none" }}
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            onChange={handlePhoto}
+                        />
                     </div>
                 </div>
             )}

@@ -201,10 +201,10 @@ export function fatboyReducer(data: FatboyData, action: FatboyAction) {
                         label: action.name,
                         calories: action.calories,
                         category: action.category,
-                        redMeat: 0,
-                        sugar: 0,
-                        alcohol: 0,
-                        satch: 0,
+                        redMeat: action.redMeat,
+                        sugar: action.sugar,
+                        alcohol: action.alcohol,
+                        satch: action.satch,
                     });
 
                     let day = draft.days.find(

@@ -1,4 +1,11 @@
-import React, { memo, useContext, useMemo, useState } from "react";
+import React, {
+    memo,
+    useCallback,
+    useContext,
+    useId,
+    useMemo,
+    useState,
+} from "react";
 import {
     type Comestible,
     ComestiblesContext,
@@ -11,6 +18,8 @@ import {
 } from "./data";
 import { type FatboyAction } from "./reducer";
 import { EditingDay } from "./editingDay";
+import { useStorage } from "../../encrypted-storage/Storage";
+import { handleNutritionPhoto } from "./ai";
 
 export type AddComestibleProps = Readonly<{
     day: Day;
@@ -210,6 +219,44 @@ export const AddComestible = memo(
 
         const editingDay = useContext(EditingDay).value;
 
+        const [aiFeedback, setAiFeedback] = useState("");
+        const openApiKey = useStorage().extra.openAiKey;
+
+        const handlePhoto = useCallback(
+            async (ev: React.ChangeEvent<HTMLInputElement>) => {
+                console.log("Furbies", {
+                    search,
+                    meal,
+                    editingDay,
+                });
+
+                const result = await handleNutritionPhoto(
+                    openApiKey,
+                    ev,
+                    setAiFeedback
+                );
+                if (result) {
+                    dispatch({
+                        type: "ADD_COMESTIBLE",
+                        editingDay,
+                        name: search,
+                        calories: result.energy_kcal,
+                        category: "other",
+                        redMeat: 0,
+                        satch: result.saturated_fat_g,
+                        alcohol: 0,
+                        sugar: result.sugar_g,
+                        meal,
+                    });
+                    reset();
+                    setAiFeedback(`For serving size: ${result.serving_size}`);
+                }
+            },
+            [openApiKey, search, meal, editingDay]
+        );
+
+        const photoButtonId = useId();
+
         return (
             <>
                 {found.map((c) => (
@@ -266,15 +313,6 @@ export const AddComestible = memo(
                                     meal,
                                 });
                                 reset();
-                            } else if (found.length > 0) {
-                                dispatch({
-                                    type: "ADD_ATE",
-                                    editingDay,
-                                    meal,
-                                    comestible: found[0].comestible.id,
-                                    quantity: 1,
-                                });
-                                reset();
                             }
                         }}
                     >
@@ -292,13 +330,21 @@ export const AddComestible = memo(
                         />
                         <button
                             type="submit"
-                            disabled={
-                                (isNaN(parseFloat(calories)) || !search) &&
-                                found.length === 0
-                            }
+                            disabled={isNaN(parseFloat(calories)) || !search}
                         >
                             Add
                         </button>
+
+                        <label htmlFor={photoButtonId}>📸</label>
+                        <input
+                            id={photoButtonId}
+                            style={{ display: "none" }}
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            onChange={handlePhoto}
+                        />
+                        {aiFeedback && <div>{aiFeedback}</div>}
                     </form>
                 </div>
             </>

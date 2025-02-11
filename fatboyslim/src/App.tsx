@@ -5,7 +5,11 @@ import { azureBackend } from "../../encrypted-storage/azureBackend";
 
 export default function App() {
     return (
-        <Storage backend={azureBackend} app="fatboy">
+        <Storage
+            backend={azureBackend}
+            app="fatboy"
+            settings={{ openAiKey: "OpenAI Key" }}
+        >
             <Tabs />
         </Storage>
     );
