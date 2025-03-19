@@ -29,6 +29,7 @@ export function getTotals(ate: AteItem[]) {
         calories: totalOf(ate, (x) => x.calories * x.quantity),
         satch: totalOf(ate, (x) => (x.satch ?? 0) * x.quantity),
         sugar: totalOf(ate, (x) => (x.sugar ?? 0) * x.quantity),
+        protein: totalOf(ate, (x) => (x.protein ?? 0) * x.quantity),
     };
 }
 
@@ -80,10 +81,12 @@ export const MealContents = ({
                         {!!c.satch && <span>💔</span>}
                         {!!c.redMeat && <span>🥩</span>}
                         {!!c.alcohol && <span>🍺</span>}
+                        {!!c.protein && <span>💪</span>}
                         {(c.satch === undefined ||
                             c.sugar === undefined ||
                             c.redMeat === undefined ||
-                            c.alcohol === undefined) && (
+                            c.alcohol === undefined ||
+                            c.protein === undefined) && (
                             <span className="satch">🤨</span>
                         )}
                         <span className="calories">{c.calories}</span>

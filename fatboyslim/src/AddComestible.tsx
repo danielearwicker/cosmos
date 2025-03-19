@@ -244,6 +244,7 @@ export const AddComestible = memo(
                         category: "other",
                         redMeat: 0,
                         satch: result.saturated_fat_g,
+                        protein: result.protein_g,
                         alcohol: 0,
                         sugar: result.sugar_g,
                         meal,
@@ -310,6 +311,7 @@ export const AddComestible = memo(
                                     satch: 0,
                                     alcohol: 0,
                                     sugar: 0,
+                                    protein: 0,
                                     meal,
                                 });
                                 reset();

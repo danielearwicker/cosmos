@@ -275,6 +275,7 @@ function ComestibleEditor({
     const [sugar, setSugar] = useState("");
     const [alcohol, setAlcohol] = useState("");
     const [satch, setSatch] = useState("");
+    const [protein, setProtein] = useState("");
     const [name, setName] = useState("");
 
     const [deleting, setDeleting] = useState(false);
@@ -373,6 +374,9 @@ function ComestibleEditor({
                 {!!comestible.satch && (
                     <span className="component">💔 {comestible.satch}g</span>
                 )}
+                {!!comestible.protein && (
+                    <span className="component">💪 {comestible.protein}g</span>
+                )}
             </div>
             <select
                 className="category"
@@ -398,6 +402,7 @@ function ComestibleEditor({
                             setSugar(`${comestible.sugar ?? 0}`);
                             setAlcohol(`${comestible.alcohol ?? 0}`);
                             setSatch(`${comestible.satch ?? 0}`);
+                            setProtein(`${comestible.protein ?? 0}`);
                             setName(comestible.label);
                             setEditing(true);
                         }}
@@ -516,13 +521,25 @@ function ComestibleEditor({
                         g
                     </div>
                     <div>
+                        <label>💪</label>
+                        <input
+                            type="number"
+                            className="protein"
+                            placeholder="Protein"
+                            value={protein}
+                            onChange={(e) => setProtein(e.target.value)}
+                        />
+                        g
+                    </div>
+                    <div>
                         <button
                             disabled={
                                 isNaN(parseFloat(calories)) ||
                                 isNaN(parseFloat(redMeat)) ||
                                 isNaN(parseFloat(sugar)) ||
                                 isNaN(parseFloat(alcohol)) ||
-                                isNaN(parseFloat(satch))
+                                isNaN(parseFloat(satch)) ||
+                                isNaN(parseFloat(protein))
                             }
                             onClick={() => {
                                 dispatch({
@@ -533,6 +550,7 @@ function ComestibleEditor({
                                     sugar: parseFloat(sugar),
                                     alcohol: parseFloat(alcohol),
                                     satch: parseFloat(satch),
+                                    protein: parseFloat(protein),
                                     newName: name,
                                 });
                                 setEditing(false);

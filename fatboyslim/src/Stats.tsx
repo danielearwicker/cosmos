@@ -65,6 +65,13 @@ export function Stats({ state }: StatsProps) {
     const totalSugar = sum(facts.map((x) => x.sugar ?? 0));
     const totalAlcohol = sum(facts.map((x) => x.alcohol ?? 0));
     const totalSatch = sum(facts.map((x) => x.satch ?? 0));
+    const totalProtein = sum(
+        facts.map((x) =>
+            x.category === "savoury" || x.category === "dairy"
+                ? x.protein ?? 0
+                : 0
+        )
+    );
     const dayCount = filteredState.days.length || 1;
 
     type Fact = (typeof facts)[number];
@@ -75,6 +82,7 @@ export function Stats({ state }: StatsProps) {
         "red meat (g)": (f: Fact) => f.redMeat,
         "alcohol (units)": (f: Fact) => f.alcohol,
         "satch (g)": (f: Fact) => f.satch,
+        "protein (g)": (f: Fact) => f.protein,
     };
 
     const segments = {
@@ -147,6 +155,10 @@ export function Stats({ state }: StatsProps) {
                 <NumberStat value={totalSugar / dayCount} label="sugar (g)" />
                 <NumberStat value={totalAlcohol / dayCount} label="alcohol" />
                 <NumberStat value={totalSatch / dayCount} label="satch (g)" />
+                <NumberStat
+                    value={totalProtein / dayCount}
+                    label="protein (g)"
+                />
             </div>
 
             <div className="chart-config">

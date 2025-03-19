@@ -25,6 +25,7 @@ export type Comestible = Readonly<{
     sugar?: number;
     alcohol?: number;
     satch?: number;
+    protein?: number;
 }>;
 
 function getParts(str: string) {
@@ -241,6 +242,7 @@ export function getDayFacts(day: Day, comestibles: Record<string, Comestible>) {
             sugar: 0,
             alcohol: 0,
             satch: 0,
+            protein: 0,
             comestible: a.comestible,
             meal: a.meal,
         };
@@ -254,6 +256,7 @@ export function getDayFacts(day: Day, comestibles: Record<string, Comestible>) {
             sugar: (c.sugar ?? 0) * a.quantity,
             alcohol: (c.alcohol ?? 0) * a.quantity,
             satch: (c.satch ?? 0) * a.quantity,
+            protein: (c.protein ?? 0) * a.quantity,
             comestible: c.id,
             meal: a.meal,
         };
