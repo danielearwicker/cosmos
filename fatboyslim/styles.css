@@ -552,13 +552,25 @@ select {
     }
 
     .doses {
+        display: flex;
+        flex-direction: column;
+
         .dose {
             display: flex;
             flex-direction: row;
             gap: 0.5em;
+
             .time {
-                width: 5em;
+                width: 9em;
             }
+
+            padding: 0.3em;
+
+            &.even {
+                background-color: #555;
+            }
+
+            font-size: 1rem;
 
             .remove {
                 background: none;

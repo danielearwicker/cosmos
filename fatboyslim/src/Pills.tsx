@@ -96,11 +96,11 @@ export function Pills({ state, dispatch }: PillsProps) {
         return undefined;
     }, [now]);
 
-    const nowMinus24Hours = now - dayInMs;
+    const nowMinus7Days = now - dayInMs * 7;
 
-    const dosesInLast24Hours: DoseWithPill[] = useMemo(() => {
+    const recentDoses: DoseWithPill[] = useMemo(() => {
         return state.doses
-            .filter((d) => d.time >= nowMinus24Hours && d.time <= now)
+            .filter((d) => d.time >= nowMinus7Days && d.time <= now)
             .map((dose) => ({
                 time: dose.time,
                 pill: state.pills.find((p) => p.id === dose.pill)!,
@@ -109,43 +109,12 @@ export function Pills({ state, dispatch }: PillsProps) {
             .sort((l, r) => {
                 return r.time - l.time;
             });
-    }, [state.doses, nowMinus24Hours, state.pills]);
-
-    const issues = useMemo(() => {
-        const issues: string[] = [];
-        for (const pill of state.pills) {
-            const doses = dosesInLast24Hours.filter(
-                (d) => d.pill.id === pill.id
-            );
-            if (doses.length > pill.maxDosesPerDay) {
-                issues.push(
-                    `More than ${pill.maxDosesPerDay} of ${pill.name} in 24 hours!`
-                );
-            }
-            for (let i = 1; i < doses.length; i++) {
-                if (
-                    doses[i - 1].time - doses[i].time <
-                    pill.hoursBetweenDoses * hourInMs
-                ) {
-                    issues.push(`Doses of ${pill.name} too close together!`);
-                }
-            }
-        }
-        return issues;
-    }, [dosesInLast24Hours, state.pills]);
-
-    // local midnight on viewing day
-    const midnightDate = new Date(now);
-    midnightDate.setHours(0, 0, 0, 0);
-    const midnight = midnightDate.getTime();
-
-    const todayDoses = dosesInLast24Hours.filter((d) => d.time >= midnight);
-    const yesterdayDoses = dosesInLast24Hours.filter((d) => d.time < midnight);
+    }, [state.doses, nowMinus7Days, state.pills]);
 
     const pills = useMemo(
         () =>
             state.pills.map((pill) => {
-                let pillDoses = dosesInLast24Hours
+                let pillDoses = recentDoses
                     .filter((x) => x.pill.id === pill.id)
                     .map((x) => x.time);
 
@@ -173,7 +142,7 @@ export function Pills({ state, dispatch }: PillsProps) {
                     available: nextDoseTime <= now,
                 };
             }),
-        [state.pills, dosesInLast24Hours, now]
+        [state.pills, recentDoses, now]
     );
 
     return (
@@ -221,21 +190,7 @@ export function Pills({ state, dispatch }: PillsProps) {
                     </button>
                 ))}
             </div>
-            {issues.length > 0 && (
-                <div className="issues">
-                    {issues.map((issue) => (
-                        <div key={issue} className="issue">
-                            {issue}
-                        </div>
-                    ))}
-                </div>
-            )}
-            <Doses doses={todayDoses} heading="Today" dispatch={dispatch} />
-            <Doses
-                doses={yesterdayDoses}
-                heading="Yesterday"
-                dispatch={dispatch}
-            />
+            <Doses doses={recentDoses} dispatch={dispatch} />
             <PillEditor pills={state.pills} dispatch={dispatch} />
         </div>
     );
@@ -273,22 +228,39 @@ function Dose({
 
 function Doses({
     doses,
-    heading,
     dispatch,
 }: {
     doses: DoseWithPill[];
-    heading: string;
     dispatch: React.Dispatch<FatboyAction>;
 }) {
+    const groupedByDate = _(doses)
+        .map((d) => ({
+            ...d,
+            dateHeading: getLocalDayName(d.time),
+        }))
+        .groupBy((d) => d.dateHeading)
+        .pairs()
+        .map(([day, doses]) => ({
+            day,
+            doses,
+        }))
+        .value();
+
     return (
-        <div className="doses">
-            <h2>{heading}</h2>
-            {doses.map((dose) => (
-                <Dose
-                    dose={dose}
-                    key={`${dose.time}-${dose.pill.id}`}
-                    dispatch={dispatch}
-                />
+        <div className="doses-day">
+            {groupedByDate.map(({ day, doses }) => (
+                <>
+                    <h2 key={day}>{day}</h2>
+                    <div className="doses">
+                        {doses.map((dose) => (
+                            <Dose
+                                dose={dose}
+                                key={`${dose.time}-${dose.pill.id}`}
+                                dispatch={dispatch}
+                            />
+                        ))}
+                    </div>
+                </>
             ))}
         </div>
     );
@@ -442,6 +414,16 @@ function PillEditor({
             </div>
         </div>
     );
+}
+
+function getLocalDayName(time: number) {
+    const d = new Date(time);
+
+    const dayOfWeek = d.toLocaleDateString("en-gb", { weekday: "long" });
+    const monthName = d.toLocaleDateString("en-gb", { month: "short" });
+    const date = `${d.getDate()}`.padStart(2, "0");
+
+    return ` ${date} ${monthName} - ${dayOfWeek}`;
 }
 
 function getLocalTimeString(time: number) {
