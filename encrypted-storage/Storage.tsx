@@ -52,9 +52,9 @@ export interface StorageProps<P extends string> {
 }
 
 const coreSettings = {
-    encryptionKey: "Encryption Key",
-    blobConnectionString: "Blob Connection String",
-    user: "User Name",
+    encryptionKey: "key",
+    blobConnectionString: "con",
+    user: "uid",
 };
 
 function keysOf<T extends object>(obj: T) {
@@ -76,21 +76,12 @@ export function Storage<P extends string>({
         ephemeral
     );
 
-    const [modifiedSettingValues, setModifiedSettingsValues] = useState<
-        Partial<typeof completeSettings>
-    >({});
-
     const savedSettingValues: Partial<typeof completeSettings> = {
         ...JSON.parse(settingValues),
     };
 
     const { encryptionKey, blobConnectionString, user, ...extra } =
         savedSettingValues;
-
-    const effectiveSettings: Partial<typeof completeSettings> = {
-        ...savedSettingValues,
-        ...modifiedSettingValues,
-    };
 
     const [showConfig, setShowConfig] = useState(false);
 
@@ -133,54 +124,53 @@ export function Storage<P extends string>({
         },
     };
 
+    const [password, setPassword] = useState("");
+
+    const ready = !!encryptionKey && !!blobConnectionString && !!user;
+
     return (
         <div className="app">
-            {!encryptionKey || !blobConnectionString || !user || showConfig ? (
+            {!ready || showConfig ? (
                 <div className="storage-options">
-                    <form>
-                        <h2>
-                            <label htmlFor="user-name">User Name</label>
-                        </h2>
-                        {keysOf(completeSettings).map((setting) => (
-                            <>
-                                <p>
-                                    <label htmlFor={setting}>
-                                        {completeSettings[setting]}
-                                    </label>
-                                </p>
-                                <p>
-                                    <input
-                                        name={setting}
-                                        id={setting}
-                                        value={effectiveSettings[setting] ?? ""}
-                                        onChange={(e) =>
-                                            setModifiedSettingsValues({
-                                                ...modifiedSettingValues,
-                                                [setting]: e.target.value,
-                                            })
-                                        }
-                                    />
-                                </p>
-                            </>
-                        ))}
-                    </form>
-                    <p>
+                    <form action="#">
+                        <p>
+                            <label htmlFor="password">Password</label>
+                        </p>
+                        <p>
+                            <input
+                                name="password"
+                                id="password"
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </p>
                         <button
-                            onClick={() => {
-                                setSettingValues(
-                                    JSON.stringify(effectiveSettings)
+                            onClick={e => {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                const parsed = JSON.parse(password);
+
+                                const formatted = Object.fromEntries(
+                                    Object.entries(completeSettings).map(
+                                        ([longKey, shortKey]) => [
+                                            longKey,
+                                            parsed[shortKey] ?? "",
+                                        ]
+                                    )
                                 );
-                                setModifiedSettingsValues({});
+
+                                setSettingValues(JSON.stringify(formatted));
                             }}
                         >
-                            Save
+                            Go
                         </button>
-                        <button onClick={() => setModifiedSettingsValues({})}>
-                            Revert
-                        </button>
-                        <button onClick={() => setShowConfig(false)}>
-                            Back
-                        </button>
+                        {ready && (
+                            <button onClick={() => setShowConfig(false)}>
+                                Back
+                            </button>
+                        )}
                     </p>
                 </div>
             ) : (

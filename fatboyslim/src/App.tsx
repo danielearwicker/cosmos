@@ -8,7 +8,7 @@ export default function App() {
         <Storage
             backend={azureBackend}
             app="fatboy"
-            settings={{ openAiKey: "OpenAI Key" }}
+            settings={{ openAiKey: "oai" }}
         >
             <Tabs />
         </Storage>
