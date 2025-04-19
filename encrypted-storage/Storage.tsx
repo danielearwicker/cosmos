@@ -146,7 +146,7 @@ export function Storage<P extends string>({
                             />
                         </p>
                         <button
-                            onClick={e => {
+                            onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
 
@@ -171,7 +171,7 @@ export function Storage<P extends string>({
                                 Back
                             </button>
                         )}
-                    </p>
+                    </form>
                 </div>
             ) : (
                 <>
