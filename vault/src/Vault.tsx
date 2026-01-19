@@ -91,7 +91,9 @@ export function Vault() {
     const [viewingPdfId, setViewingPdfId] = useState<string | null>(null);
     const [viewingImageId, setViewingImageId] = useState<string | null>(null);
     const [activeTagFilters, setActiveTagFilters] = useState<string[]>([]);
+    const [activeTypeFilter, setActiveTypeFilter] = useState<string | null>(null);
     const [showingTagManagement, setShowingTagManagement] = useState(false);
+    const [showingTypeDropdown, setShowingTypeDropdown] = useState(false);
 
     const allTags = useMemo(() => {
         const tags = new Set<string>();
@@ -102,6 +104,25 @@ export function Vault() {
         }
         return Array.from(tags).sort();
     }, [state.items]);
+
+    const distinctFileTypes = useMemo(() => {
+        const types = new Set<string>();
+        for (const item of state.items) {
+            if (item.type) {
+                types.add(item.type);
+            }
+        }
+        return Array.from(types).sort();
+    }, [state.items]);
+
+    // Close type dropdown when clicking outside
+    useEffect(() => {
+        if (showingTypeDropdown) {
+            const handleClick = () => setShowingTypeDropdown(false);
+            document.addEventListener("click", handleClick);
+            return () => document.removeEventListener("click", handleClick);
+        }
+    }, [showingTypeDropdown]);
 
     const filteredItems = useMemo(() => {
         let items = state.items;
@@ -118,6 +139,11 @@ export function Vault() {
                     );
                 })
             );
+        }
+
+        // Filter by active file type filter
+        if (activeTypeFilter) {
+            items = items.filter((item) => item.type === activeTypeFilter);
         }
 
         // Parse search term for tag: syntax
@@ -185,7 +211,7 @@ export function Vault() {
         }
 
         return items;
-    }, [state.items, search, activeTagFilters]);
+    }, [state.items, search, activeTagFilters, activeTypeFilter]);
 
     function toggleTagFilter(tag: string) {
         setActiveTagFilters((prev) =>
@@ -268,6 +294,42 @@ export function Vault() {
                 >
                     Manage Tags
                 </button>
+                <div className="type-filter-container">
+                    <button
+                        className="types-btn"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setShowingTypeDropdown(!showingTypeDropdown);
+                        }}
+                    >
+                        Types {activeTypeFilter ? `(${activeTypeFilter})` : ""}
+                    </button>
+                    {showingTypeDropdown && (
+                        <div className="type-dropdown">
+                            <div
+                                className="type-option"
+                                onClick={() => {
+                                    setActiveTypeFilter(null);
+                                    setShowingTypeDropdown(false);
+                                }}
+                            >
+                                All types
+                            </div>
+                            {distinctFileTypes.map((type) => (
+                                <div
+                                    key={type}
+                                    className={`type-option ${activeTypeFilter === type ? "active" : ""}`}
+                                    onClick={() => {
+                                        setActiveTypeFilter(type);
+                                        setShowingTypeDropdown(false);
+                                    }}
+                                >
+                                    {getFileIcon(type)} {type}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
                 <UploadFiles dispatch={dispatch} />
             </div>
             {activeTagFilters.length > 0 && (
