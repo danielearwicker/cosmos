@@ -18,6 +18,7 @@ Tags appear as "chips" (pill-shaped badges) in the file's metadata row:
 ```
 
 Each tag chip shows:
+
 - The tag text
 - A small "×" button to remove the tag
 
@@ -27,21 +28,22 @@ Each tag chip shows:
 
 1. **Click the [+] button** next to existing tags
 2. **Dropdown appears** with:
-   - Text input field at top
-   - List of suggested tags (existing tags from other files)
+    - Text input field at top
+    - List of suggested tags (existing tags from other files)
 3. **Type to filter**: Suggestions narrow as you type
 4. **Select existing tag**: Click a suggestion to add it
 5. **Create new tag**: If your input doesn't match any existing tag, a "Create" option appears:
-   ```
-   Create "my-new-tag"
-   ```
+    ```
+    Create "my-new-tag"
+    ```
 6. **Keyboard support**:
-   - Enter: Create/add the typed tag
-   - Escape: Cancel and close dropdown
+    - Enter: Create/add the typed tag
+    - Escape: Cancel and close dropdown
 
 ### Autocomplete Logic
 
 The suggestion list shows:
+
 1. All tags used anywhere in the vault
 2. Filtered to exclude tags already on this file
 3. Further filtered by the typed input (substring match)
@@ -49,13 +51,14 @@ The suggestion list shows:
 
 ```typescript
 const suggestedTags = allTags.filter(
-    (t) => !item.tags.includes(t) && (!term || t.includes(term))
+    (t) => !item.tags.includes(t) && (!term || t.includes(term)),
 );
 ```
 
 ### "Create" Option
 
 The "Create" option appears when:
+
 1. The input is not empty (after trimming and lowercasing)
 2. The input doesn't exactly match any suggested tag
 3. The input isn't already a tag on this file
@@ -148,7 +151,7 @@ const [activeTagFilters, setActiveTagFilters] = useState<string[]>([]);
 
 function toggleTagFilter(tag: string) {
     setActiveTagFilters((prev) =>
-        prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+        prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
     );
 }
 ```
@@ -162,16 +165,14 @@ const filteredItems = useMemo(() => {
     // Filter by active tag filters (AND logic)
     if (activeTagFilters.length > 0) {
         items = items.filter((item) =>
-            activeTagFilters.every((tag) => item.tags.includes(tag))
+            activeTagFilters.every((tag) => item.tags.includes(tag)),
         );
     }
 
     // Filter by search term
     const term = search.toLowerCase().trim();
     if (term) {
-        items = items.filter((item) =>
-            item.name.toLowerCase().includes(term)
-        );
+        items = items.filter((item) => item.name.toLowerCase().includes(term));
     }
 
     return items;
@@ -242,6 +243,7 @@ Tags can be assigned colors for visual distinction.
 ### Predefined Colors
 
 A palette of 10 colors is available:
+
 - Red (#c55), Orange (#d83), Yellow (#cc6), Green (#6c6), Teal (#5aa), Blue (#68c), Purple (#a6c), Pink (#c6a), Gray (#888), Default (#446)
 
 ### Assignment

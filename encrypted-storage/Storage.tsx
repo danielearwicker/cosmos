@@ -5,7 +5,6 @@ import {
     CHUNK_SIZE,
     ENCRYPTED_CHUNK_SIZE,
 } from "./crypto";
-import { useLocalStorageState } from "./useLocalStorageState";
 
 export interface StoragePayload {
     version: string;
@@ -74,7 +73,6 @@ export function useStorage() {
 
 export interface StorageProps<P extends string> {
     app: string;
-    ephemeral?: boolean;
     backend(url: string, name: string): AbstractBlobClient;
     settings: Record<P, string>;
 }
@@ -93,16 +91,11 @@ export function Storage<P extends string>({
     app,
     backend,
     children,
-    ephemeral,
     settings,
 }: React.PropsWithChildren<StorageProps<P>>) {
     const completeSettings = { ...settings, ...coreSettings };
 
-    const [settingValues, setSettingValues] = useLocalStorageState(
-        "storage-settings",
-        "{}",
-        ephemeral
-    );
+    const [settingValues, setSettingValues] = useState("{}");
 
     const savedSettingValues: Partial<typeof completeSettings> = {
         ...JSON.parse(settingValues),

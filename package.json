@@ -8,12 +8,14 @@
         "fatboyslim-css": "cp encrypted-storage/styles.css fatboyslim/dist/encrypted-storage.css",
         "fatboyslim-build": "npm run fatboyslim-css && ./build.sh fatboyslim",
         "fatboyslim-watch": "npm run fatboyslim-css && ./watch.sh fatboyslim",
+        "fatboyslim-deploy": "az storage blob upload-batch -d '$web' --account-name earapps -s fatboyslim --destination-path fatboyslim --overwrite",
+        "bdf": "npm run fatboyslim-build && npm run fatboyslim-deploy",
         "spendy-build": "./build.sh spendy",
         "spendy-watch": "./watch.sh spendy",
         "vault-build": "./build.sh vault",
         "vault-watch": "./watch.sh vault",
-        "deploy": "az storage blob upload-batch -d '$web' --account-name earapps -s fatboyslim --destination-path fatboyslim --overwrite",
-        "bdf": "npm run fatboyslim-build && npm run deploy"
+        "vault-deploy": "az storage blob upload-batch -d '$web' --account-name earapps -s vault --destination-path vault --overwrite",
+        "bdv": "npm run vault-build && npm run vault-deploy"
     },
     "dependencies": {
         "@azure/storage-blob": "^12.24.0",
