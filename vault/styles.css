@@ -1507,3 +1507,319 @@ select {
     color: #666;
     font-size: 0.85rem;
 }
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    html,
+    body,
+    #root,
+    .app,
+    .app-content {
+        font-size: 1em;
+    }
+
+    .vault {
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
+
+    /* Toolbar - wrap and stack on mobile */
+    .vault .toolbar {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .vault .view-tabs {
+        order: 1;
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .vault .view-tab {
+        flex: 1;
+        text-align: center;
+        padding: 0.6rem 0.5rem;
+    }
+
+    .vault .toolbar .search {
+        order: 2;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .vault .toolbar .manage-tags-btn,
+    .vault .toolbar .type-filter-container,
+    .vault .toolbar .upload-btn {
+        order: 3;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .vault .toolbar button {
+        font-size: 0.85rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Active filters - better wrapping */
+    .vault .active-filters {
+        padding: 0.4rem;
+        gap: 0.4rem;
+    }
+
+    /* File items - stack layout on mobile */
+    .vault .item {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 0.5rem;
+        padding: 0.6rem;
+    }
+
+    .vault .item .name-row {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .vault .item .meta {
+        grid-column: 1;
+        grid-row: 2;
+        flex-wrap: wrap;
+    }
+
+    .vault .item .actions {
+        grid-column: 1;
+        grid-row: 3;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    .vault .item .actions button {
+        flex: 1;
+        min-width: 0;
+        padding: 0.5rem 0.4rem;
+    }
+
+    /* Adjust tag sizes for mobile */
+    .vault .item .tag {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.4rem;
+    }
+
+    /* PDF Viewer - mobile optimizations */
+    .pdf-toolbar {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .pdf-toolbar button {
+        padding: 0.5rem 0.6rem;
+        font-size: 0.85rem;
+        min-width: fit-content;
+    }
+
+    .pdf-title {
+        order: -1;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 0.25rem;
+    }
+
+    .pdf-nav,
+    .pdf-zoom {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .pdf-nav span,
+    .pdf-zoom span {
+        min-width: auto;
+        font-size: 0.85rem;
+    }
+
+    .pdf-canvas-container {
+        padding: 0.5rem;
+    }
+
+    .pdf-tag-bar {
+        padding: 0.5rem;
+    }
+
+    /* Image Viewer - mobile optimizations */
+    .image-toolbar {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .image-toolbar button {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.85rem;
+    }
+
+    .image-title {
+        order: -1;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 0.25rem;
+    }
+
+    .image-container {
+        padding: 0.5rem;
+    }
+
+    .image-tag-bar {
+        padding: 0.5rem;
+    }
+
+    /* Timeline - adjust for mobile */
+    .timeline-controls {
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    .timeline-controls .date-jump {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .timeline-month {
+        margin-left: 0.5rem;
+    }
+
+    .timeline-day {
+        margin-left: 0.5rem;
+        padding: 0.6rem;
+    }
+
+    .timeline-day-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 0.5rem;
+    }
+
+    .timeline-year-toggle {
+        font-size: 1.2rem;
+        padding: 0.75rem;
+    }
+
+    .timeline-month-toggle {
+        font-size: 1rem;
+        padding: 0.6rem 0.75rem;
+    }
+
+    .timeline-day-header {
+        font-size: 0.9rem;
+    }
+
+    /* Tag Management - mobile optimizations */
+    .tag-management-panel {
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    .tag-management-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .tag-management-header h2 {
+        font-size: 1.1rem;
+    }
+
+    .tag-row {
+        padding: 0.75rem;
+    }
+
+    .tag-row .tag-name {
+        font-size: 1rem;
+    }
+
+    .merge-input-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .merge-input-container {
+        min-width: 0;
+    }
+
+    /* Delete confirmation - mobile optimizations */
+    .delete-confirm-dialog {
+        width: 95%;
+        padding: 1rem;
+    }
+
+    .delete-confirm-dialog h3 {
+        font-size: 1.1rem;
+    }
+
+    .confirmation-dialog {
+        width: 95%;
+        padding: 1rem;
+    }
+
+    .confirmation-dialog h3 {
+        font-size: 1.1rem;
+    }
+
+    /* Dropdowns - ensure they fit on screen */
+    .vault .type-dropdown,
+    .vault .item .add-tag-dropdown,
+    .vault .item .color-picker-dropdown,
+    .pdf-tag-bar .add-tag-dropdown,
+    .image-tag-bar .add-tag-dropdown {
+        max-width: 90vw;
+    }
+
+    /* Touch-friendly tap targets */
+    .vault .item .name,
+    .vault .item .tag .tag-text,
+    .vault .item .tag .remove-tag,
+    .vault .active-filters .remove-filter {
+        min-height: 44px;
+        min-width: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .vault .item .name {
+        min-height: auto;
+        min-width: auto;
+    }
+
+    /* Ensure scrollable areas work well */
+    .vault .items,
+    .timeline-scroll,
+    .tag-management-body {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+    .vault .toolbar button {
+        font-size: 0.8rem;
+        padding: 0.5rem 0.4rem;
+    }
+
+    .vault .item .actions button {
+        font-size: 0.8rem;
+    }
+
+    .timeline-day-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+
+    .pdf-toolbar button,
+    .image-toolbar button {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.5rem;
+    }
+
+    .pdf-nav span,
+    .pdf-zoom span {
+        font-size: 0.8rem;
+    }
+}
