@@ -1,0 +1,621 @@
+@import "dist/encrypted-storage.css";
+
+html,
+body,
+#root,
+.app,
+.app-content,
+.fatboy-slim {
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background: black;
+    color: white;
+    display: flex;
+    flex-direction: column;
+}
+
+input,
+select {
+    -webkit-appearance: none;
+    background-color: #444;
+    color: #ddd;
+}
+
+.app {
+    font-family: sans-serif;
+    font-size: 1.5em;
+    display: flex;
+    flex-direction: column;
+}
+
+.fatboy-slim {
+    display: flex;
+    flex-direction: column;
+}
+
+.over-the-limit {
+    color: hotpink;
+}
+
+.tabs {
+    display: flex;
+    flex-direction: row;
+    padding: 0.5em 0.5em 0 0.5em;
+
+    .tab {
+        font-size: 0.8em;
+        margin: 0 0.5em 0.5em 0;
+        padding: 0 0 0.2em 0;
+        border-bottom: 3px solid transparent;
+        &.selected {
+            border-bottom: 3px solid teal;
+        }
+        position: relative;
+
+        .count {
+            position: absolute;
+            right: -8px;
+            top: -4px;
+            font-size: 0.6em;
+            background-color: red;
+            color: white;
+            padding: 2px;
+            border-radius: 4px;
+        }
+    }
+}
+
+.date-picker {
+    padding: 0 0.5em;
+    input,
+    button {
+        font-size: 0.8em;
+        margin-right: 0.5em;
+    }
+    margin-bottom: 0.5em;
+}
+
+.day,
+.stats,
+.config,
+.measurements,
+.pills {
+    padding: 0.5em;
+    flex: 1 1 auto;
+    overflow: auto;
+}
+
+.measurements .history {
+    margin-top: 0.5em;
+}
+
+.day {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.calorie-bar {
+    margin: 0 0.5em 0.2em 0.5em;
+    border-radius: 0.3em;
+    background: #555;
+    position: relative;
+
+    .progress {
+        height: 0.7em;
+        background: #587;
+        border-radius: 0.3em;
+
+        &.over {
+            background: #b69;
+        }
+    }
+
+    .icon {
+        font-size: 0.4em;
+        position: relative;
+        top: -1px;
+    }
+
+    .remaining,
+    .ate {
+        position: absolute;
+        top: -1px;
+        font-size: 0.6em;
+        vertical-align: top;
+    }
+
+    .ate {
+        left: 7px;
+    }
+
+    .remaining {
+        right: 7px;
+    }
+}
+
+.meal {
+    margin-bottom: 1em;
+    padding: 0.5em;
+    background: #357;
+    border-radius: 0.5em;
+
+    .meal-heading {
+        display: flex;
+        flex-direction: row;
+
+        .title {
+            flex: 1 1 auto;
+            font-weight: bold;
+        }
+        .calories {
+            font-style: italic;
+        }
+    }
+
+    .divider {
+        color: black;
+        padding: 0.3em;
+    }
+
+    .comestible {
+        margin: 0.5em;
+        background: cornflowerblue;
+        color: white;
+        padding: 0.3em;
+        border-radius: 0.5em;
+        display: inline-block;
+
+        > * {
+            vertical-align: middle;
+        }
+
+        &.sugar {
+            border: 2px dashed cyan;
+        }
+
+        .calories {
+            padding: 0 0.2em;
+            color: darkorange;
+        }
+
+        .weight {
+            padding-left: 0.3em;
+            font-size: 0.6em;
+            color: cyan;
+        }
+
+        .quantity {
+            margin-left: 0.2em;
+            padding: 0 0.2em;
+            border-radius: 4px;
+            color: black;
+            cursor: pointer;
+            background: gold;
+            font-size: 0.9em;
+            width: 2em;
+
+            &.too-much {
+                background-color: pink;
+            }
+        }
+
+        .delete {
+            font-size: 0.8em;
+            padding-left: 0.5em;
+            cursor: pointer;
+        }
+
+        &.addable {
+            opacity: 0.5;
+            cursor: pointer;
+
+            &.too-much {
+                background-color: pink;
+            }
+        }
+    }
+
+    .add-comestible {
+        input,
+        button {
+            font-size: 1em;
+            margin-right: 0.5em;
+        }
+
+        .calories {
+            width: 5em;
+        }
+    }
+}
+
+.stats {
+    .filters {
+        padding-bottom: 0.5em;
+
+        input,
+        span {
+            vertical-align: middle;
+        }
+
+        span {
+            font-size: 0.8em;
+        }
+
+        input {
+            margin: 0 1em;
+        }
+    }
+
+    .chart-config {
+        span {
+            font-size: 0.8em;
+            padding: 0 0.5em;
+        }
+    }
+}
+
+.stacked-bar-chart {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    column-gap: 0.5em;
+
+    .label {
+        grid-column: 1;
+        font-size: 0.9em;
+    }
+
+    .bar {
+        grid-column: 2;
+        position: relative;
+        display: flex;
+        flex-direction: row;
+
+        .segment {
+            height: 22px;
+        }
+
+        .limit {
+            position: absolute;
+            inset: 0;
+            width: 4px;
+            height: 22px;
+            background-color: magenta;
+            opacity: 0.5;
+        }
+    }
+
+    .amount {
+        grid-column: 3;
+    }
+}
+
+.stat-box {
+    h3 {
+        font-weight: normal;
+        padding-bottom: 0.3em;
+        margin: 0;
+        border-bottom: 1px solid silver;
+    }
+
+    .number-stat {
+        text-align: center;
+        display: inline-block;
+        margin: 0 1em 1em 0;
+        background: #333;
+        padding: 1em;
+        border-radius: 0.5em;
+
+        .big-number {
+            font-size: 2em;
+        }
+        .little-label {
+            color: darkgray;
+        }
+    }
+
+    .tooltip {
+        background: black;
+        font-size: 0.8rem;
+        color: white;
+        padding: 0.5em;
+        border-radius: 0.5em;
+    }
+
+    text,
+    span.rv-discrete-color-legend-item__title {
+        color: #bbb;
+        fill: #bbb;
+    }
+}
+
+.config {
+    .search-bar {
+        display: flex;
+        flex-direction: row;
+        gap: 0.2em;
+
+        input {
+            font-size: 1.5em;
+            flex: auto 1 1;
+            width: 0;
+        }
+
+        button {
+            border: none;
+            background: transparent;
+            flex: auto 0 0;
+            font-size: 2em;
+            padding: 0;
+        }
+    }
+
+    select {
+        margin-right: 1em;
+        padding: 0.2em;
+        font-size: 0.6em;
+    }
+
+    .limits {
+        margin-top: 0.5em;
+        span {
+            font-size: 0.8em;
+        }
+
+        input {
+            border: 1px solid white;
+            font-size: 1em;
+            width: 5em;
+        }
+
+        .clear {
+            border: none;
+            background: none;
+            font-size: 1em;
+        }
+    }
+
+    .result-count {
+        margin-left: 0.5em;
+        font-size: smaller;
+    }
+
+    .comestible {
+        margin: 1em 0;
+        padding: 0.5em;
+        background: #333;
+        border-radius: 0.5em;
+
+        .component {
+            display: inline-block;
+            color: darkgrey;
+            background-color: #444;
+            padding: 0 0.4em;
+            margin: 0.2em;
+            border-radius: 0.5em;
+        }
+
+        label {
+            margin-right: 0.5em;
+        }
+
+        input,
+        button {
+            font-size: 1em;
+            margin-right: 0.5em;
+            display: inline-block;
+        }
+
+        .deleting {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5em;
+            input {
+                width: 5em;
+            }
+        }
+        .editing {
+            div {
+                margin: 5px 0;
+            }
+
+            input {
+                width: 5em;
+                margin-right: 4px;
+
+                &.name {
+                    width: 90%;
+                }
+            }
+
+            button {
+                margin-right: 0.5em;
+            }
+        }
+
+        .days {
+            margin-top: 1em;
+
+            .ate {
+                text-decoration: underline;
+                margin-right: 1em;
+                cursor: pointer;
+
+                &:hover {
+                    color: mediumslateblue;
+                }
+            }
+        }
+    }
+}
+
+.pictures {
+    display: flex;
+    flex-direction: row;
+    margin-top: 0.5em;
+    padding: 0 0.5em;
+    height: 4em;
+    overflow-x: auto;
+    overflow-y: hidden;
+    .add {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: silver;
+        font-size: 2em;
+        height: 2em;
+        width: 2em;
+        input[type="file"] {
+            display: none;
+        }
+    }
+    .picture {
+        img {
+            margin-left: 0.5em;
+            height: 4em;
+        }
+    }
+}
+
+.full-date {
+    margin: 0.3em 0 0 0.5em;
+    display: flex;
+    flex-direction: row;
+    gap: 0.5em;
+    span {
+        font-size: 0.6em;
+    }
+}
+
+.notes {
+    margin: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    position: relative;
+
+    textarea {
+        position: absolute;
+        inset: 0.5em;
+        font-size: 1em;
+        background: black;
+        color: white;
+    }
+}
+
+.show-picture {
+    overflow: auto;
+    .large-picture {
+        img {
+            width: 100%;
+        }
+    }
+}
+
+.pills {
+    padding: 0 0.5em;
+    .date-time {
+        .time {
+            padding-left: 0.5em;
+            display: flex;
+            flex-direction: row;
+            gap: 0.5em;
+
+            input {
+                width: 5em;
+            }
+        }
+        margin-bottom: 1em;
+    }
+    .pill-buttons {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.5em;
+
+        .pill {
+            display: flex;
+            flex-direction: row;
+            gap: 0.5em;
+            border: none;
+            background: #587;
+            color: white;
+            font-size: 1rem;
+            padding: 0.4rem;
+            border-radius: 0.4rem;
+        }
+    }
+
+    h2 {
+        font-size: 1.2rem;
+    }
+
+    .doses {
+        display: flex;
+        flex-direction: column;
+
+        .dose {
+            display: flex;
+            flex-direction: row;
+            gap: 0.5em;
+
+            .time {
+                width: 9em;
+            }
+
+            padding: 0.3em;
+
+            &.even {
+                background-color: #555;
+            }
+
+            font-size: 1rem;
+
+            .remove {
+                background: none;
+                border: none;
+                cursor: pointer;
+            }
+        }
+    }
+
+    .issues {
+        margin-top: 1em;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
+
+        .issue {
+            color: fuchsia;
+        }
+    }
+    .pill-editor {
+        margin-top: 1em;
+
+        .action-buttons {
+            margin-top: 1em;
+            display: flex;
+            flex-direction: row;
+            gap: 0.5em;
+        }
+    }
+}
+
+.info {
+    text-align: right;
+    padding: 0.2em;
+    font-size: 0.8em;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+    font-size: xx-large;
+    color: gray;
+}

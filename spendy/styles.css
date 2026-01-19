@@ -1,0 +1,218 @@
+html,
+body,
+#root {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+.app {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    font-family: sans-serif;
+    font-size: 1em;
+
+    p {
+        padding: 0;
+    }
+
+    .app-content {
+        flex: 1 1 auto;
+        overflow: hidden;
+        height: 100%;
+
+        .tabs {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100%;
+
+            .tab-buttons {
+                flex: 0 0 auto;
+
+                .tab {
+                    display: inline-block;
+                    padding: 0.5em;
+                    margin: 0.5em;
+                }
+
+                a.active {
+                    .tab {
+                        border-bottom: 2px solid silver;
+                    }
+                }
+            }
+
+            .tab-content {
+                flex: 1 1 auto;
+                overflow: hidden;
+
+                .explorer {
+                    display: flex;
+                    height: 100%;
+                    overflow: hidden;
+                    flex-direction: column;
+
+                    a {
+                        text-decoration: underline;
+                        cursor: pointer;
+                    }
+
+                    .category {
+                        display: inline-block;
+                        background: #def;
+                        padding: 0.3em;
+                        margin: 0.2em 0.2em 0.2em 0;
+                        border-radius: 0.4em;
+                        cursor: pointer;
+                    }
+
+                    .path {
+                        flex: 0 0 auto;
+                        margin: 0.5em;
+                    }
+
+                    .panel-container {
+                        flex: 1 1 auto;
+                        display: flex;
+                        flex-direction: row;
+                        overflow: hidden;
+                        height: 100%;
+
+                        .children {
+                            flex: 0 0 auto;
+                            overflow: auto;
+                            height: 100%;
+                            padding: 0.5em 0 0.5em 0.5em;
+
+                            .child-category {
+                                margin: 0.2em;
+                                padding: 0.5em;
+                                cursor: pointer;
+                                position: relative;
+                                border-radius: 0.4em;
+
+                                .category-label {
+                                    position: relative;
+                                    color: white;
+
+                                    input {
+                                        padding-right: 0.2em;
+                                    }
+                                }
+                            }
+                        }
+
+                        .leaf {
+                            flex: 1 1 auto;
+                            overflow: hidden;
+                            height: 100%;
+                            display: flex;
+                            min-height: 0;
+                            flex-direction: column;
+
+                            .filter {
+                                flex: 0 0 auto;
+                            }
+
+                            .stat-box {
+                                flex: 1 1 auto;
+                                overflow: auto;
+
+                                .tooltip {
+                                    background: black;
+                                    font-size: 0.8rem;
+                                    color: white;
+                                    padding: 0.5em;
+                                    border-radius: 0.5em;
+                                }
+                            }
+
+                            .table {
+                                flex: 1 1 auto;
+                                max-height: 10em;
+                                overflow: auto;
+                                border-collapse: collapse;
+
+                                thead {
+                                    position: sticky;
+                                    top: -2px;
+                                    background-color: aliceblue;
+                                    margin: 0;
+
+                                    td {
+                                        margin: 0;
+                                        top: 0;
+                                        padding: 1px 5px;
+                                    }
+                                }
+
+                                td {
+                                    padding: 0 5px;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                .unmatched {
+                    height: 100%;
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+
+                    .selection {
+                        flex: 0 0 auto;
+                    }
+
+                    .table {
+                        flex: 1 1 auto;
+                        overflow: auto;
+                    }
+                }
+
+                .category-management {
+                    display: flex;
+                    flex-direction: column;
+                    height: 100%;
+                    overflow: auto;
+
+                    .category {
+                        margin: 0 0 1em 1em;
+                        display: flex;
+                        flex-direction: row;
+                        gap: 1em;
+
+                        .title {
+                            padding: 0.3em;
+                            margin: 0.2em 0.2em 0.2em 0;
+                            border-radius: 0.4em;
+                            background-color: antiquewhite;
+                            align-self: start;
+                        }
+
+                        .patterns {
+                            .pattern {
+                                display: flex;
+                                flex-direction: row;
+                                gap: 0.5em;
+
+                                .definition {
+                                    font-family: "Courier New", Courier,
+                                        monospace;
+                                }
+
+                                .payment-count {
+                                    color: blue;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
