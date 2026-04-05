@@ -20,7 +20,7 @@ function readFileAsDataUrl(file: File): Promise<string> {
 export async function handleNutritionPhoto(
     key: string | undefined,
     ev: React.ChangeEvent<HTMLInputElement>,
-    feedback: (msg: string) => void
+    feedback: (msg: string) => void,
 ) {
     if (!key || !ev.target.files?.length) return;
 
@@ -89,8 +89,6 @@ salt_g: number;
     } catch (e) {
         console.error(e);
     }
-
-    console.log("Nutrition result", result);
 
     if (!result || !result.energy_kcal || !result.serving_size) {
         feedback("Couldn't get nutrition data!");

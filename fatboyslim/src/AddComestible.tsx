@@ -49,7 +49,7 @@ export function getLatestQuantity(state: FatboyData, comestible: string) {
     }
 
     const mostFrequent = Object.entries(frequencies).sort(
-        (l, r) => r[1] - l[1]
+        (l, r) => r[1] - l[1],
     )[0];
 
     return mostFrequent ? parseFloat(mostFrequent[0]) : 1;
@@ -61,7 +61,7 @@ export function mostOftenEatenWith(
     meal: Meal,
     ate: string[],
     day: string,
-    limit: number
+    limit: number,
 ) {
     const lastConsumed: Record<string, string[]> = {};
 
@@ -156,7 +156,7 @@ export function mostOftenEatenWith(
 
     const extras = state.comestibles.filter(
         (x) =>
-            x.calories < limit && x.category == "treat" && !ate.includes(x.id)
+            x.calories < limit && x.category == "treat" && !ate.includes(x.id),
     );
     extras.sort((l, r) => r.calories - l.calories);
     const topExtras = extras.slice(0, 5).map((comestible) => ({
@@ -168,8 +168,8 @@ export function mostOftenEatenWith(
         ate.length === 0
             ? rightAboutNow
             : implied.length !== 0
-            ? implied
-            : topExtras;
+              ? implied
+              : topExtras;
 
     sortComestibleChoices(candidates, limit);
 
@@ -184,7 +184,7 @@ export const AddComestible = memo(
         const ate = useMemo(
             () =>
                 day.ate.filter((a) => a.meal === meal).map((a) => a.comestible),
-            [day.ate]
+            [day.ate],
         );
 
         const comestiblesMap = useContext(ComestiblesContext);
@@ -197,9 +197,9 @@ export const AddComestible = memo(
                     meal,
                     ate,
                     day.date,
-                    limit
+                    limit,
                 ),
-            [comestiblesMap, state, meal, ate, day.date]
+            [comestiblesMap, state, meal, ate, day.date],
         );
 
         const found = (
@@ -207,7 +207,7 @@ export const AddComestible = memo(
                 ? searchComestibles(
                       state.comestibles.filter((x) => !ate.includes(x.id)),
                       search,
-                      limit
+                      limit,
                   )
                 : mealChoices
         ).slice(0, 10);
@@ -229,16 +229,10 @@ export const AddComestible = memo(
 
         const handlePhoto = useCallback(
             async (ev: React.ChangeEvent<HTMLInputElement>) => {
-                console.log("Furbies", {
-                    search,
-                    meal,
-                    editingDay,
-                });
-
                 const result = await handleNutritionPhoto(
                     openApiKey,
                     ev,
-                    setAiFeedback
+                    setAiFeedback,
                 );
                 if (result) {
                     dispatch({
@@ -258,7 +252,7 @@ export const AddComestible = memo(
                     setAiFeedback(`For serving size: ${result.serving_size}`);
                 }
             },
-            [openApiKey, search, meal, editingDay]
+            [openApiKey, search, meal, editingDay],
         );
 
         const photoButtonId = useId();
@@ -279,7 +273,7 @@ export const AddComestible = memo(
                                 comestible: c.comestible.id,
                                 quantity: getLatestQuantity(
                                     state,
-                                    c.comestible.id
+                                    c.comestible.id,
                                 ),
                             });
                             reset();
@@ -356,5 +350,5 @@ export const AddComestible = memo(
                 </div>
             </>
         );
-    }
+    },
 );

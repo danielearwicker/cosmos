@@ -27,9 +27,16 @@ export interface PDFViewerProps {
     tagColors: Readonly<Record<string, string>>;
 }
 
-export function PDFViewer({ item, dispatch, onClose, allTags, tagColors }: PDFViewerProps) {
+export function PDFViewer({
+    item,
+    dispatch,
+    onClose,
+    allTags,
+    tagColors,
+}: PDFViewerProps) {
     const storage = useStorage();
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     const [pdfDoc, setPdfDoc] = useState<PDFDocumentProxy | null>(null);
     const [currentPage, setCurrentPage] = useState(item.currentPage ?? 1);
     const [numPages, setNumPages] = useState(0);
@@ -37,14 +44,19 @@ export function PDFViewer({ item, dispatch, onClose, allTags, tagColors }: PDFVi
     const [loadingPage, setLoadingPage] = useState(false);
     const [chunksLoaded, setChunksLoaded] = useState(0);
     const [totalChunks, setTotalChunks] = useState(0);
-    const [scale, setScale] = useState(1.5);
+    const [scale, setScale] = useState(0);
     const [error, setError] = useState<string | null>(null);
     const sourceRef = useRef<EncryptedPDFSource | null>(null);
     const [pageInput, setPageInput] = useState("");
     const [editingPage, setEditingPage] = useState(false);
+    const [showControls, setShowControls] = useState(false);
     const [addingTag, setAddingTag] = useState(false);
     const [tagInput, setTagInput] = useState("");
     const tagInputRef = useRef<HTMLInputElement>(null);
+    const pendingScrollRef = useRef<{
+        scrollLeft: number;
+        scrollTop: number;
+    } | null>(null);
 
     // Load the PDF document with progressive/range loading
     useEffect(() => {
@@ -60,17 +72,12 @@ export function PDFViewer({ item, dispatch, onClose, allTags, tagColors }: PDFVi
                 const blobConnectionString = storage.blobConnectionString;
                 const encryptionKey = storage.encryptionKey;
 
-                const { azureBackend } = await import(
-                    "../../encrypted-storage/azureBackend"
-                );
-
-                const settingsJson = localStorage.getItem("storage-settings");
-                const settings = settingsJson ? JSON.parse(settingsJson) : {};
-                const user = settings.user || "";
+                const { azureBackend } =
+                    await import("../../encrypted-storage/azureBackend");
 
                 const client = azureBackend(
                     blobConnectionString,
-                    `${user}-${item.id}`
+                    `${storage.user}-${item.id}`,
                 );
 
                 const source = new EncryptedPDFSource(
@@ -81,7 +88,7 @@ export function PDFViewer({ item, dispatch, onClose, allTags, tagColors }: PDFVi
                             setChunksLoaded(loaded);
                             setTotalChunks(total);
                         }
-                    }
+                    },
                 );
                 sourceRef.current = source;
 
@@ -91,19 +98,25 @@ export function PDFViewer({ item, dispatch, onClose, allTags, tagColors }: PDFVi
                 if (cancelled) return;
 
                 // Create a PDFDataRangeTransport for progressive loading
-                const transport = new pdfjsLib.PDFDataRangeTransport(length, null);
+                const transport = new pdfjsLib.PDFDataRangeTransport(
+                    length,
+                    null,
+                );
 
                 // Handle range requests from PDF.js
                 transport.requestDataRange = (begin: number, end: number) => {
                     if (cancelled) return;
 
-                    source.read(begin, end - begin).then((data) => {
-                        if (!cancelled) {
-                            transport.onDataRange(begin, data);
-                        }
-                    }).catch((err) => {
-                        console.error("Error loading PDF range:", err);
-                    });
+                    source
+                        .read(begin, end - begin)
+                        .then((data) => {
+                            if (!cancelled) {
+                                transport.onDataRange(begin, data);
+                            }
+                        })
+                        .catch((err) => {
+                            console.error("Error loading PDF range:", err);
+                        });
                 };
 
                 // Start loading the document
@@ -143,9 +156,25 @@ export function PDFViewer({ item, dispatch, onClose, allTags, tagColors }: PDFVi
         };
     }, [item.id, storage]);
 
+    // Calculate fit-to-width scale when PDF first loads
+    useEffect(() => {
+        if (!pdfDoc || !containerRef.current || scale !== 0) return;
+
+        async function fitToWidth() {
+            const page = await pdfDoc!.getPage(1);
+            const viewport = page.getViewport({ scale: 1 });
+            const containerWidth = containerRef.current!.clientWidth;
+            const padding = 16; // account for container padding (0.5rem each side)
+            const fitScale = (containerWidth - padding) / viewport.width;
+            setScale(fitScale);
+        }
+
+        fitToWidth();
+    }, [pdfDoc, scale]);
+
     // Render the current page
     useEffect(() => {
-        if (!pdfDoc || !canvasRef.current) return;
+        if (!pdfDoc || !canvasRef.current || scale === 0) return;
 
         let cancelled = false;
 
@@ -166,6 +195,17 @@ export function PDFViewer({ item, dispatch, onClose, allTags, tagColors }: PDFVi
                     canvasContext: context,
                     viewport,
                 }).promise;
+
+                if (!cancelled && pendingScrollRef.current) {
+                    const container = containerRef.current;
+                    if (container) {
+                        container.scrollLeft =
+                            pendingScrollRef.current.scrollLeft;
+                        container.scrollTop =
+                            pendingScrollRef.current.scrollTop;
+                    }
+                    pendingScrollRef.current = null;
+                }
             } finally {
                 if (!cancelled) {
                     setLoadingPage(false);
@@ -220,20 +260,23 @@ export function PDFViewer({ item, dispatch, onClose, allTags, tagColors }: PDFVi
         setEditingPage(false);
     }, [pageInput, numPages]);
 
-    const handlePageInputKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if (e.key === "Enter") {
-            commitPageInput();
-        } else if (e.key === "Escape") {
-            setEditingPage(false);
-        }
-        e.stopPropagation();
-    }, [commitPageInput]);
+    const handlePageInputKeyDown = useCallback(
+        (e: React.KeyboardEvent) => {
+            if (e.key === "Enter") {
+                commitPageInput();
+            } else if (e.key === "Escape") {
+                setEditingPage(false);
+            }
+            e.stopPropagation();
+        },
+        [commitPageInput],
+    );
 
     // Tag management
     const suggestedTags = useMemo(() => {
         const term = tagInput.toLowerCase().trim();
         return allTags.filter(
-            (t) => !item.tags.includes(t) && (!term || t.includes(term))
+            (t) => !item.tags.includes(t) && (!term || t.includes(term)),
         );
     }, [allTags, item.tags, tagInput]);
 
@@ -269,6 +312,146 @@ export function PDFViewer({ item, dispatch, onClose, allTags, tagColors }: PDFVi
         }
         e.stopPropagation();
     }
+
+    // Keep a ref to current scale for pinch-to-zoom (avoids re-attaching listeners)
+    const scaleRef = useRef(scale);
+    scaleRef.current = scale;
+
+    // Pinch-to-zoom on the canvas container
+    // Uses CSS transform for smooth preview, then commits final scale on touch end.
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        let initialDistance = 0;
+        let initialScale = 0;
+        let pinching = false;
+        let suppressUntil = 0;
+        // Pinch midpoint in viewport coordinates
+        let midViewX = 0;
+        let midViewY = 0;
+        // Transform origin in canvas-local coordinates
+        let originX = 0;
+        let originY = 0;
+
+        function getDistance(touches: TouchList) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.hypot(dx, dy);
+        }
+
+        function getMidpoint(touches: TouchList) {
+            return {
+                x: (touches[0].clientX + touches[1].clientX) / 2,
+                y: (touches[0].clientY + touches[1].clientY) / 2,
+            };
+        }
+
+        function onTouchStart(e: TouchEvent) {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                pinching = true;
+                initialDistance = getDistance(e.touches);
+                initialScale = scaleRef.current;
+
+                const mid = getMidpoint(e.touches);
+                midViewX = mid.x;
+                midViewY = mid.y;
+
+                const canvas = canvasRef.current;
+                if (canvas) {
+                    const rect = canvas.getBoundingClientRect();
+                    originX = midViewX - rect.left;
+                    originY = midViewY - rect.top;
+                }
+            } else if (Date.now() < suppressUntil) {
+                e.preventDefault();
+            }
+        }
+
+        function onTouchMove(e: TouchEvent) {
+            if (pinching) {
+                e.preventDefault();
+                if (e.touches.length === 2) {
+                    const currentDistance = getDistance(e.touches);
+                    const ratio = currentDistance / initialDistance;
+                    const canvas = canvasRef.current;
+                    if (canvas) {
+                        canvas.style.transformOrigin = `${originX}px ${originY}px`;
+                        canvas.style.transform = `scale(${ratio})`;
+                    }
+                }
+            } else if (Date.now() < suppressUntil) {
+                e.preventDefault();
+            }
+        }
+
+        function onTouchEnd(e: TouchEvent) {
+            if (!pinching) return;
+            if (e.touches.length < 2) {
+                pinching = false;
+                suppressUntil = Date.now() + 300;
+                const canvas = canvasRef.current;
+                if (canvas && container) {
+                    const match =
+                        canvas.style.transform.match(/scale\(([^)]+)\)/);
+                    const ratio = match ? parseFloat(match[1]) : 1;
+                    canvas.style.transform = "";
+                    canvas.style.transformOrigin = "";
+                    const newScale = Math.min(
+                        5,
+                        Math.max(0.3, initialScale * ratio),
+                    );
+
+                    // Calculate scroll adjustment so the pinch midpoint
+                    // stays over the same content point.
+                    // The content point under the midpoint in container coords:
+                    const containerRect = container.getBoundingClientRect();
+                    const localX = midViewX - containerRect.left;
+                    const localY = midViewY - containerRect.top;
+                    const contentX = container.scrollLeft + localX;
+                    const contentY = container.scrollTop + localY;
+
+                    // After scale change, that content point moves by the ratio
+                    pendingScrollRef.current = {
+                        scrollLeft: contentX * ratio - localX,
+                        scrollTop: contentY * ratio - localY,
+                    };
+
+                    setScale(newScale);
+                }
+            }
+        }
+
+        function onGesture(e: Event) {
+            e.preventDefault();
+        }
+
+        container.addEventListener("touchstart", onTouchStart, {
+            passive: false,
+        });
+        container.addEventListener("touchmove", onTouchMove, {
+            passive: false,
+        });
+        container.addEventListener("touchend", onTouchEnd);
+        container.addEventListener("touchcancel", onTouchEnd);
+        container.addEventListener("gesturestart", onGesture, {
+            passive: false,
+        });
+        container.addEventListener("gesturechange", onGesture, {
+            passive: false,
+        });
+        container.addEventListener("gestureend", onGesture, { passive: false });
+        return () => {
+            container.removeEventListener("touchstart", onTouchStart);
+            container.removeEventListener("touchmove", onTouchMove);
+            container.removeEventListener("touchend", onTouchEnd);
+            container.removeEventListener("touchcancel", onTouchEnd);
+            container.removeEventListener("gesturestart", onGesture);
+            container.removeEventListener("gesturechange", onGesture);
+            container.removeEventListener("gestureend", onGesture);
+        };
+    }, [loading]);
 
     // Keyboard navigation
     useEffect(() => {
@@ -330,119 +513,185 @@ export function PDFViewer({ item, dispatch, onClose, allTags, tagColors }: PDFVi
 
     return (
         <div className="pdf-viewer">
-            <div className="pdf-toolbar">
-                <button onClick={onClose}>Close</button>
-                <span className="pdf-title">{item.name}</span>
-                <div className="pdf-nav">
-                    <button onClick={goToPrevPage} disabled={currentPage <= 1}>
-                        ◀
-                    </button>
-                    {editingPage ? (
-                        <span className="pdf-page-input-wrapper">
-                            <input
-                                type="text"
-                                className="pdf-page-input"
-                                value={pageInput}
-                                onChange={(e) => setPageInput(e.target.value)}
-                                onBlur={commitPageInput}
-                                onKeyDown={handlePageInputKeyDown}
-                                autoFocus
-                            />
-                            <span> / {numPages}</span>
+            {showControls && (
+                <div className="pdf-toolbar">
+                    <button onClick={onClose}>Close</button>
+                    <span className="pdf-title">{item.name}</span>
+                    <div className="pdf-nav">
+                        <button
+                            onClick={goToPrevPage}
+                            disabled={currentPage <= 1}
+                        >
+                            ◀
+                        </button>
+                        {editingPage ? (
+                            <span className="pdf-page-input-wrapper">
+                                <input
+                                    type="text"
+                                    className="pdf-page-input"
+                                    value={pageInput}
+                                    onChange={(e) =>
+                                        setPageInput(e.target.value)
+                                    }
+                                    onBlur={commitPageInput}
+                                    onKeyDown={handlePageInputKeyDown}
+                                    autoFocus
+                                />
+                                <span> / {numPages}</span>
+                            </span>
+                        ) : (
+                            <span
+                                className="pdf-page-display"
+                                onClick={startEditingPage}
+                            >
+                                {currentPage} / {numPages}
+                            </span>
+                        )}
+                        <button
+                            onClick={goToNextPage}
+                            disabled={currentPage >= numPages}
+                        >
+                            ▶
+                        </button>
+                    </div>
+                    <div className="pdf-zoom">
+                        <button onClick={zoomOut}>−</button>
+                        <span>{Math.round(scale * 100)}%</span>
+                        <button onClick={zoomIn}>+</button>
+                    </div>
+                    {loadingPage && (
+                        <span className="pdf-page-loading">
+                            Loading page...
                         </span>
-                    ) : (
-                        <span className="pdf-page-display" onClick={startEditingPage}>
-                            {currentPage} / {numPages}
+                    )}
+                    {chunksLoaded > 0 && chunksLoaded < totalChunks && (
+                        <span className="pdf-chunks">
+                            Chunks: {chunksLoaded}/{totalChunks}
                         </span>
                     )}
                     <button
-                        onClick={goToNextPage}
-                        disabled={currentPage >= numPages}
+                        className="pdf-hide-controls"
+                        onClick={() => setShowControls(false)}
                     >
-                        ▶
+                        Hide
                     </button>
                 </div>
-                <div className="pdf-zoom">
-                    <button onClick={zoomOut}>−</button>
-                    <span>{Math.round(scale * 100)}%</span>
-                    <button onClick={zoomIn}>+</button>
-                </div>
-                {loadingPage && <span className="pdf-page-loading">Loading page...</span>}
-                {chunksLoaded > 0 && chunksLoaded < totalChunks && (
-                    <span className="pdf-chunks">
-                        Chunks: {chunksLoaded}/{totalChunks}
-                    </span>
-                )}
-            </div>
-            <div className="pdf-canvas-container">
+            )}
+            {!showControls && (
+                <>
+                    <button className="pdf-floating-close" onClick={onClose}>
+                        &times;
+                    </button>
+                    <button
+                        className="pdf-show-controls"
+                        onClick={() => setShowControls(true)}
+                    >
+                        ...
+                    </button>
+                </>
+            )}
+            <div className="pdf-canvas-container" ref={containerRef}>
                 <div className="pdf-page-wrapper">
                     <canvas ref={canvasRef} />
                 </div>
             </div>
-            <div className="pdf-tag-bar">
-                <div className="tags">
-                    {item.tags.map((tag) => {
-                        const bgColor = tagColors[tag] || "#446";
-                        const textColor = getContrastColor(bgColor);
-                        return (
-                            <span
-                                className="tag"
-                                key={tag}
-                                style={{ background: bgColor, color: textColor }}
-                            >
-                                <span className="tag-text">{tag}</span>
+            {showControls && (
+                <div className="pdf-tag-bar">
+                    <div className="tags">
+                        {item.tags.map((tag) => {
+                            const bgColor = tagColors[tag] || "#446";
+                            const textColor = getContrastColor(bgColor);
+                            return (
                                 <span
-                                    className="remove-tag"
-                                    onClick={() => removeTag(tag)}
+                                    className="tag"
+                                    key={tag}
+                                    style={{
+                                        background: bgColor,
+                                        color: textColor,
+                                    }}
                                 >
-                                    ×
+                                    <span className="tag-text">{tag}</span>
+                                    <span
+                                        className="remove-tag"
+                                        onClick={() => removeTag(tag)}
+                                    >
+                                        ×
+                                    </span>
                                 </span>
-                            </span>
-                        );
-                    })}
-                    <div className="add-tag">
-                        <button
-                            className="add-tag-btn"
-                            onClick={openTagDropdown}
-                        >
-                            +
-                        </button>
-                        {addingTag && (
-                            <div className="add-tag-dropdown">
-                                <input
-                                    ref={tagInputRef}
-                                    value={tagInput}
-                                    onChange={(e) => setTagInput(e.target.value)}
-                                    onKeyDown={handleTagKeyDown}
-                                    onBlur={() =>
-                                        setTimeout(() => setAddingTag(false), 150)
-                                    }
-                                    placeholder="Add tag..."
-                                />
-                                {suggestedTags.map((tag) => (
-                                    <div
-                                        key={tag}
-                                        className="tag-option"
-                                        onMouseDown={() => addTag(tag)}
-                                    >
-                                        {tag}
-                                    </div>
-                                ))}
-                                {showCreateOption && (
-                                    <div
-                                        className="tag-option create"
-                                        onMouseDown={() =>
-                                            addTag(tagInput.toLowerCase().trim())
+                            );
+                        })}
+                        <div className="add-tag">
+                            <button
+                                className="add-tag-btn"
+                                onClick={openTagDropdown}
+                            >
+                                +
+                            </button>
+                            {addingTag && (
+                                <div className="add-tag-dropdown">
+                                    <input
+                                        ref={tagInputRef}
+                                        value={tagInput}
+                                        onChange={(e) =>
+                                            setTagInput(e.target.value)
                                         }
-                                    >
-                                        Create "{tagInput.toLowerCase().trim()}"
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                                        onKeyDown={handleTagKeyDown}
+                                        onBlur={() =>
+                                            setTimeout(
+                                                () => setAddingTag(false),
+                                                150,
+                                            )
+                                        }
+                                        placeholder="Add tag..."
+                                    />
+                                    {suggestedTags.map((tag) => (
+                                        <div
+                                            key={tag}
+                                            className="tag-option"
+                                            onMouseDown={() => addTag(tag)}
+                                        >
+                                            {tag}
+                                        </div>
+                                    ))}
+                                    {showCreateOption && (
+                                        <div
+                                            className="tag-option create"
+                                            onMouseDown={() =>
+                                                addTag(
+                                                    tagInput
+                                                        .toLowerCase()
+                                                        .trim(),
+                                                )
+                                            }
+                                        >
+                                            Create "
+                                            {tagInput.toLowerCase().trim()}"
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
+            {!showControls && (
+                <>
+                    <button
+                        className="pdf-prev-page"
+                        onClick={goToPrevPage}
+                        disabled={currentPage <= 1}
+                    >
+                        &lt;
+                    </button>
+                    <button
+                        className="pdf-next-page"
+                        onClick={goToNextPage}
+                        disabled={currentPage >= numPages}
+                    >
+                        &gt;
+                    </button>
+                </>
+            )}
         </div>
     );
 }

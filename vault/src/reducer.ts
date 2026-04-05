@@ -122,8 +122,15 @@ export function vaultReducer(old: VaultState, action: VaultAction) {
                 months = Array.isArray(timelineCollapsed.months) ? timelineCollapsed.months : [];
             }
 
+            // Remove items that were queued or uploading — these are
+            // incomplete uploads from a previous session that can't resume.
+            const items = (action.state.items || []).filter(
+                (item) => item.uploadState !== "queued" && item.uploadState !== "uploading"
+            );
+
             return {
                 ...action.state,
+                items,
                 tagColors: action.state.tagColors || {},
                 viewMode: action.state.viewMode || "files",
                 timelineCollapsed: {

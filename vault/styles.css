@@ -468,6 +468,7 @@ select {
 
 /* PDF Viewer */
 .pdf-viewer {
+    position: relative;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -528,17 +529,17 @@ select {
     flex: 1;
     overflow: auto;
     padding: 1rem;
+    touch-action: pan-x pan-y;
 }
 
 .pdf-canvas-container .pdf-page-wrapper {
-    display: flex;
-    justify-content: center;
-    min-height: 100%;
+    display: block;
 }
 
 .pdf-canvas-container canvas {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     display: block;
+    margin: 0 auto;
 }
 
 .pdf-loading, .pdf-error {
@@ -624,6 +625,7 @@ select {
     align-items: center;
     gap: 0.25rem;
     padding: 0.15rem 0.4rem;
+    border: 1px solid transparent;
     background: #446;
     border-radius: 12px;
     font-size: 0.8rem;
@@ -645,6 +647,8 @@ select {
 
 .pdf-tag-bar .add-tag {
     position: relative;
+    display: inline-flex;
+    align-items: center;
 }
 
 .pdf-tag-bar .add-tag-btn {
@@ -697,6 +701,85 @@ select {
 .pdf-tag-bar .add-tag-dropdown .tag-option.create {
     color: #8af;
     font-style: italic;
+}
+
+.pdf-hide-controls {
+    margin-left: auto;
+}
+
+.pdf-show-controls {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    z-index: 5;
+    padding: 0.3rem 0.6rem;
+    background: rgba(34, 34, 34, 0.7);
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 0.9rem;
+    line-height: 1;
+}
+
+.pdf-floating-close {
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+    z-index: 5;
+    padding: 0.3rem 0.6rem;
+    background: rgba(34, 34, 34, 0.7);
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.pdf-floating-close:hover {
+    background: rgba(68, 68, 68, 0.9);
+    color: white;
+}
+
+.pdf-show-controls:hover {
+    background: rgba(68, 68, 68, 0.9);
+    color: white;
+}
+
+.pdf-prev-page,
+.pdf-next-page {
+    position: absolute;
+    bottom: 0.5rem;
+    z-index: 5;
+    padding: 0.5rem 0.8rem;
+    background: rgba(34, 34, 34, 0.7);
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.pdf-prev-page {
+    left: 0.5rem;
+}
+
+.pdf-next-page {
+    right: 0.5rem;
+}
+
+.pdf-prev-page:hover:not(:disabled),
+.pdf-next-page:hover:not(:disabled) {
+    background: rgba(68, 68, 68, 0.9);
+    color: white;
+}
+
+.pdf-prev-page:disabled,
+.pdf-next-page:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
 }
 
 /* Delete Confirmation Dialog */

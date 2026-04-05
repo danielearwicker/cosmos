@@ -7,7 +7,7 @@ export function useStorageBackedState<T extends object, A>(
     name: string,
     reducer: (old: T, action: A) => T,
     initialState: T,
-    generateLoadAction: (state: T) => A
+    generateLoadAction: (state: T) => A,
 ) {
     const [state, dispatchWithoutSave] = useReducer(reducer, initialState);
 
@@ -24,7 +24,7 @@ export function useStorageBackedState<T extends object, A>(
 
     const [queuedActionsJson, setQueuedActionsJson] = useLocalStorageState(
         "queuedActions",
-        "[]"
+        "[]",
     );
 
     const queuedActions = JSON.parse(queuedActionsJson) as A[];
@@ -35,10 +35,10 @@ export function useStorageBackedState<T extends object, A>(
                 JSON.stringify(
                     typeof update === "function"
                         ? update(JSON.parse(prev))
-                        : update
-                )
+                        : update,
+                ),
             ),
-        []
+        [],
     );
 
     useEffect(() => {
@@ -46,9 +46,8 @@ export function useStorageBackedState<T extends object, A>(
             try {
                 const loaded = await storage.load(name);
                 if (loaded.data) {
-                    const state = JSON.parse(
-                        new TextDecoder().decode(loaded.data)
-                    ) as T;
+                    const text = new TextDecoder().decode(loaded.data);
+                    const state = JSON.parse(text) as T;
                     dispatchWithoutSave(generateLoadAction(state));
                 }
                 setInfo(`Loaded ${loaded.version}`);
@@ -60,10 +59,11 @@ export function useStorageBackedState<T extends object, A>(
                     }
 
                     saveSoon(
-                        `Recovering (${queuedActions.length}) ${loaded.version}`
+                        `Recovering (${queuedActions.length}) ${loaded.version}`,
                     );
                 }
             } catch (e) {
+                console.error(`[storage] load failed:`, e);
                 setInfo(`Load failed: ${e}`);
             }
         }
@@ -115,8 +115,8 @@ export function useStorageBackedState<T extends object, A>(
                     const updated = prev.filter(
                         (p) =>
                             !savedActions.find(
-                                (s) => JSON.stringify(s) === JSON.stringify(p)
-                            )
+                                (s) => JSON.stringify(s) === JSON.stringify(p),
+                            ),
                     );
                     if (updated.length > 0) {
                         saveSoon(`${updated.length} more to save`);
@@ -124,6 +124,11 @@ export function useStorageBackedState<T extends object, A>(
                     return updated;
                 });
             } catch (e) {
+                console.error(
+                    `[storage] save failed for "${name}":`,
+                    e,
+                    "retrying...",
+                );
                 flags.current.saving = false;
 
                 const loaded = await storage.load(name);

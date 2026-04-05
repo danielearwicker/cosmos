@@ -47,8 +47,6 @@ export function normalizeCategory(category: string) {
 export function spendyReducer(old: SpendyState, action: SpendyAction) {
     switch (action.type) {
         case "LOAD": {
-            console.log(action.state);
-
             return {
                 transactions: action.state.transactions ?? [],
                 categories: action.state.categories ?? [],
@@ -59,7 +57,7 @@ export function spendyReducer(old: SpendyState, action: SpendyAction) {
 
         case "ADD_BANK_STATEMENT": {
             const payments = old.transactions.concat(
-                parseStatement(action.text)
+                parseStatement(action.text),
             );
             const sorted = sort(payments)
                 .by("date")
@@ -88,7 +86,7 @@ export function spendyReducer(old: SpendyState, action: SpendyAction) {
         case "ADD_CATEGORIES": {
             const parsed = JSON.parse(action.text) as readonly (readonly [
                 name: string,
-                explanation: string
+                explanation: string,
             ])[];
             const newCategories = old.categories.slice(0);
 
@@ -108,7 +106,7 @@ export function spendyReducer(old: SpendyState, action: SpendyAction) {
         case "ADD_TRANSACTION_CATEGORIES": {
             const parsed = JSON.parse(action.text) as readonly (readonly [
                 description: string,
-                category: string
+                category: string,
             ])[];
             const categoriesByDescription = { ...old.categoriesByDescription };
 
@@ -149,7 +147,7 @@ export function useSpendyStorage() {
         "spendy",
         spendyReducer,
         initialState,
-        generateLoadAction
+        generateLoadAction,
     );
 }
 

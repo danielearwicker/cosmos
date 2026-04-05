@@ -5,7 +5,6 @@ import { localStorageBackend } from "../../encrypted-storage/localStorageBackend
 import { Tabs } from "./Tabs";
 
 export function App() {
-    console.log("App");
     return (
         <Storage backend={localStorageBackend} app="spendy" settings={{}}>
             <Tabs />

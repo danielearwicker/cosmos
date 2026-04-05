@@ -39,8 +39,6 @@ export function ImageViewer({
     } | null>(null);
     const tagInputRef = useRef<HTMLInputElement>(null);
 
-    console.log("Properties:", item.properties);
-
     // Check if the item has location data
     const hasLocation =
         item.properties?.latitude !== undefined &&
@@ -72,7 +70,7 @@ export function ImageViewer({
                         item.id,
                         (downloaded, total) => {
                             setLoadProgress({ downloaded, total });
-                        }
+                        },
                     );
                     setLoadProgress(null);
                 } else {
@@ -112,7 +110,7 @@ export function ImageViewer({
     const suggestedTags = useMemo(() => {
         const term = tagInput.toLowerCase().trim();
         return allTags.filter(
-            (t) => !item.tags.includes(t) && (!term || t.includes(term))
+            (t) => !item.tags.includes(t) && (!term || t.includes(term)),
         );
     }, [allTags, item.tags, tagInput]);
 
@@ -176,7 +174,7 @@ export function ImageViewer({
     if (loading) {
         const progressText = loadProgress
             ? `Loading image... ${Math.round(
-                  (loadProgress.downloaded / loadProgress.total) * 100
+                  (loadProgress.downloaded / loadProgress.total) * 100,
               )}%`
             : "Loading image...";
 
@@ -199,9 +197,7 @@ export function ImageViewer({
                 <button onClick={onClose}>Close</button>
                 <span className="image-title">{item.name}</span>
                 {hasLocation && (
-                    <button onClick={openMap}>
-                        View Location
-                    </button>
+                    <button onClick={openMap}>View Location</button>
                 )}
             </div>
             <div className="image-container">
@@ -252,7 +248,7 @@ export function ImageViewer({
                                     onBlur={() =>
                                         setTimeout(
                                             () => setAddingTag(false),
-                                            150
+                                            150,
                                         )
                                     }
                                     placeholder="Add tag..."
@@ -271,7 +267,7 @@ export function ImageViewer({
                                         className="tag-option create"
                                         onMouseDown={() =>
                                             addTag(
-                                                tagInput.toLowerCase().trim()
+                                                tagInput.toLowerCase().trim(),
                                             )
                                         }
                                     >

@@ -14,6 +14,7 @@ export interface StoragePayload {
 export interface StorageConfig {
     encryptionKey: string;
     blobConnectionString: string;
+    user: string;
     extra: Record<string, string | undefined>;
     load(name: string): Promise<StoragePayload>;
     save(name: string, data: StoragePayload): Promise<string>;
@@ -61,6 +62,7 @@ export interface AbstractBlobClient {
 const StorageContext = createContext<StorageConfig>({
     encryptionKey: "",
     blobConnectionString: "",
+    user: "",
     extra: {},
     load: () => Promise.resolve({ data: undefined, version: "" }),
     save: () => Promise.resolve(""),
@@ -109,6 +111,7 @@ export function Storage<P extends string>({
     const ctx: StorageConfig = {
         encryptionKey: encryptionKey ?? "",
         blobConnectionString: blobConnectionString ?? "",
+        user: user ?? "",
         extra,
         async load(name) {
             try {

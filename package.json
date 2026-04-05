@@ -4,7 +4,7 @@
         "@types/bun": "latest"
     },
     "scripts": {
-        "serve": "http-server -p 8081",
+        "serve": "http-server -p 8081 -c-1",
         "fatboyslim-css": "cp encrypted-storage/styles.css fatboyslim/dist/encrypted-storage.css",
         "fatboyslim-build": "npm run fatboyslim-css && ./build.sh fatboyslim",
         "fatboyslim-watch": "npm run fatboyslim-css && ./watch.sh fatboyslim",
@@ -14,7 +14,7 @@
         "spendy-watch": "./watch.sh spendy",
         "vault-build": "./build.sh vault",
         "vault-watch": "./watch.sh vault",
-        "vault-deploy": "az storage blob upload-batch -d '$web' --account-name earapps -s vault --destination-path vault --overwrite",
+        "vault-deploy": "az storage blob upload-batch -d '$web' --account-name earapps -s vault --destination-path vault --overwrite && az storage blob upload --container-name '$web' --account-name earapps -f encrypted-storage/styles.css --name encrypted-storage/styles.css --overwrite && az storage blob update --container-name '$web' --account-name earapps --name vault/index.html --content-cache-control 'no-cache'",
         "bdv": "npm run vault-build && npm run vault-deploy"
     },
     "dependencies": {
